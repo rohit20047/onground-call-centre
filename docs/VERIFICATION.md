@@ -16,7 +16,7 @@
 - Account caller ID/API permissions for trial calls: must be confirmed against Exotel before the real-call demo.
 - Exotel WebRTC access: not enabled; use the documented phone bridge for baseline calling.
 - Public repository published with user approval: https://github.com/rohit20047/onground-call-centre . Source ZIP and complete history bundle are also prepared.
-- Live hosted URL: local Node previews exist, but external deployment has not been verified.
+- Temporary live URL: https://pcs-articles-refugees-indicate.trycloudflare.com . It forwards to the production Node server and requires that server/tunnel to stay running. Permanent hosting is not established.
 - Screen recording with real calling: pending the verified real-call test.
 
 Build/tests and authentication are not substitutes for proof that a real phone rang and an answered conversation worked. The assignment remains incomplete until the required real-call demonstration and submission artifacts are ready.

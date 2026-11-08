@@ -17,7 +17,7 @@ This checklist preserves the PDF's full submission scope. Implementation or a pa
 | Original code, restrained reference styling, own Git history | Source in this repository; four local implementation commits; inspected reference separately | Implemented; reference was not shipped |
 | README, run steps, stack/rationale, done/skipped, AI usage, calling explanation | `README.md` | Prepared |
 | GitHub repository link | Local source repository and complete Git bundle available | Published with user approval: https://github.com/rohit20047/onground-call-centre |
-| Live working demo link | Local development and production processes; Node hosting manifest prepared | NOT COMPLETE: external hosting is not verified |
+| Live working demo link | Local development and production processes; Node hosting manifest prepared | Temporary Cloudflare tunnel created; permanent hosting and longevity remain unproven |
 | Screen recording up to two minutes including real calling | `docs/DEMO_GUIDE.md` gives the recording sequence | NOT COMPLETE: real-call recording pending |
 
 ## Bonuses

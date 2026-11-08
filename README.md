@@ -2,6 +2,14 @@
 
 An original React + Node.js implementation of the supplied Call Centre reference. It brings the agent dashboard, ranked calling plan, lead details, calendar, and Pulse conversations into a responsive workspace. Real telephone calls use Exotel's server-side API; there is no simulated calling fallback.
 
+## Live preview and repository
+
+- Repository: https://github.com/rohit20047/onground-call-centre
+- Temporary live preview: https://pcs-articles-refugees-indicate.trycloudflare.com
+- A separate demo access code is required and is not committed to this repository.
+- The temporary link depends on the local server/tunnel remaining running; it is not permanent hosting.
+- Real-call testing is currently blocked by Exotel account KYC. The app is not yet a successful real-call demonstration.
+
 ## Run locally
 
 Requires Node.js 22.12+ and npm.
