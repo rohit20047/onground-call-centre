@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: onground-call-centre
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: DEMO_ACCESS_TOKEN
+        generateValue: true
+      - key: EXOTEL_ACCOUNT_SID
+        sync: false
+      - key: EXOTEL_API_KEY
+        sync: false
+      - key: EXOTEL_API_TOKEN
+        sync: false
+      - key: EXOTEL_API_HOST
+        value: api.exotel.com
+      - key: EXOTEL_AGENT_NUMBER
+        sync: false
+      - key: EXOTEL_CALLER_ID
+        sync: false
+      - key: EXOTEL_ALLOWED_NUMBERS
+        sync: false
