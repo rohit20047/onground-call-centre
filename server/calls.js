@@ -25,8 +25,17 @@ export function mergeProvider(call, data) {
     if (status) call.status = status;
   }
   call.providerStatus = status || call.providerStatus;
+  const conversationDuration =
+    data.Details?.ConversationDuration ?? data.ConversationDuration;
   call.duration =
-    Number(data.ConversationDuration ?? data.Duration ?? call.duration) || 0;
+    Number(conversationDuration ?? data.Duration ?? call.duration) || 0;
+  if (data.Details) {
+    call.agentStatus = data.Details.Leg1Status || call.agentStatus;
+    call.recipientStatus = data.Details.Leg2Status || call.recipientStatus;
+  }
+  call.finalized = terminal.has(call.status) && conversationDuration != null;
+  if (terminal.has(call.status) && !call.terminalObservedAt)
+    call.terminalObservedAt = new Date().toISOString();
   call.endedAt = data.EndTime || call.endedAt;
   call.updatedAt = new Date().toISOString();
   return call;

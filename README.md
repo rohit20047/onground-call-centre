@@ -8,7 +8,7 @@ An original React + Node.js implementation of the supplied Call Centre reference
 - Temporary live preview: https://pcs-articles-refugees-indicate.trycloudflare.com
 - A separate demo access code is required and is not committed to this repository.
 - The temporary link depends on the local server/tunnel remaining running; it is not permanent hosting.
-- Real-call testing is currently blocked by Exotel account KYC. The app is not yet a successful real-call demonstration.
+- Real telephone calling was verified on 8 November 2026: both phones rang, both participants answered, and the user confirmed two-way audio. Exotel reported both legs completed and 15 seconds of conversation.
 
 ## Run locally
 
@@ -60,11 +60,11 @@ Set `HOST=0.0.0.0`, a platform-provided `PORT`, and `DEMO_ACCESS_TOKEN` on a hos
 ## How real calling works
 
 1. A person opens the app and selects Call from a lead, missed-call row, or the floating call button.
-2. They enter a pre-approved demo recipient and confirm the recipient may be called now.
-3. React sends the request to Node. It never receives the permanent Exotel API key/token.
+2. They select a masked, pre-approved demo recipient and confirm the recipient may be called now.
+3. React sends an approved recipient identifier to Node. The calling form does not expose the full destination number, and React never receives the permanent Exotel API key/token.
 4. Node validates the number, checks the allowlist, prevents duplicate/overlapping calls, and calls Exotel's `Calls/connect.json` endpoint using HTTP Basic authentication in a header.
 5. Exotel calls `EXOTEL_AGENT_NUMBER` first. The agent answers on their phone. Exotel then calls the recipient and bridges the two phones.
-6. The UI polls Node, which reads the real provider Call Details API. Status is never advanced by a fake timer. A provider `in-progress` status means Exotel is connecting/handling the call; it does not alone prove both parties answered.
+6. The UI polls Node, which reads the real provider Call Details API. Final conversation duration is taken from Exotel’s detailed call record, with polling continuing while delayed terminal details settle. Status is never advanced by a fake timer. A provider `in-progress` status means Exotel is connecting/handling the call; it does not alone prove both parties answered.
 7. Hang up on either phone to end the conversation. This API integration does not claim an in-app hangup capability. The configured provider time limit is three minutes.
 8. Real records appear in Recent and accept manual outcome/notes. Duration and final values can arrive later from Exotel.
 
@@ -98,9 +98,13 @@ node server/check-provider.js
 
 `npm test` exercises phone validation, terminal-state merging, provider error handling, access control, destination allowlisting, cross-site request blocking, idempotency, overlapping-call prevention, and outcome persistence. API tests use a fake transport and never contact Exotel. These tests are not proof of a real telephone conversation.
 
-`check-provider.js` makes a read-only authenticated balance request and does not place calls. A real call must be demonstrated separately using a verified agent/recipient pair.
+`check-provider.js` makes a read-only authenticated balance request and does not place calls. A real agent-to-recipient conversation was demonstrated with two verified account users on 8 November 2026. The provider record and participant confirmation are retained privately.
 
 Browser verification performed: dashboard, lead modal and paging, row expansion/list paging, callback setup guard, call review, calendar navigation through December/January and Today, channel message sending, pinned task resolution, reload persistence, and desktop/phone-width overflow checks. Screenshots are under `docs/`.
+
+## Real-call test result
+
+The first attempt was rejected while the recipient was not yet a verified account user. After the second number was added and verified, Exotel accepted outbound API calls without a payment-card addition. One attempt ended before a conversation was established; the successful retry completed both call legs with 15 seconds of conversation, and the user confirmed both participants heard each other. This documents this account’s observed result, not a guarantee that every Exotel trial has the same permissions. Personal numbers, invitation emails, credentials, and raw provider responses are excluded from the repository.
 
 ## Deliberately not integrated
 

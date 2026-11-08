@@ -51,3 +51,26 @@ test("provider errors are useful and permanent credentials stay in authenticatio
     globalThis.fetch = original;
   }
 });
+
+test("final conversation duration uses both-party time rather than total call setup time", () => {
+  const call = { status: "in-progress", duration: 0 };
+  mergeProvider(call, {
+    Status: "completed",
+    Duration: 30,
+    Details: { ConversationDuration: null },
+  });
+  assert.equal(call.finalized, false);
+  mergeProvider(call, {
+    Status: "completed",
+    Duration: 30,
+    Details: {
+      ConversationDuration: 15,
+      Leg1Status: "completed",
+      Leg2Status: "completed",
+    },
+  });
+  assert.equal(call.duration, 15);
+  assert.equal(call.finalized, true);
+  assert.equal(call.agentStatus, "completed");
+  assert.equal(call.recipientStatus, "completed");
+});

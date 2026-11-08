@@ -1737,7 +1737,9 @@ function Pulse({
   );
 }
 function CallModal({ lead, config, onClose, onRefresh, notify }) {
-  const [destination, setDestination] = useState(""),
+  const [destination, setDestination] = useState(
+      config?.allowedNumbers?.[0]?.id || "",
+    ),
     [call, setCall] = useState(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -1752,7 +1754,15 @@ function CallModal({ lead, config, onClose, onRefresh, notify }) {
     "cancelled",
   ];
   useEffect(() => {
-    if (!call?.id || terminal.includes(call.status)) return;
+    if (
+      !call?.id ||
+      (terminal.includes(call.status) &&
+        (call.finalized ||
+          !call.providerId ||
+          Date.now() - Date.parse(call.terminalObservedAt || call.createdAt) >
+            180000))
+    )
+      return;
     let live = true;
     const poll = async () => {
       try {
@@ -1767,7 +1777,7 @@ function CallModal({ lead, config, onClose, onRefresh, notify }) {
       live = false;
       clearInterval(timer);
     };
-  }, [call?.id, call?.status]);
+  }, [call?.id, call?.status, call?.finalized]);
   async function initiate(e) {
     e.preventDefault();
     setBusy(true);
@@ -1777,7 +1787,7 @@ function CallModal({ lead, config, onClose, onRefresh, notify }) {
         method: "POST",
         headers: { "Idempotency-Key": idempotency.current },
         body: JSON.stringify({
-          to: destination,
+          recipientId: destination,
           name: lead?.name,
           leadId: lead?.id,
         }),
@@ -1841,19 +1851,23 @@ function CallModal({ lead, config, onClose, onRefresh, notify }) {
             <label className="field-label" htmlFor="destination">
               Approved recipient number
             </label>
-            <input
+            <select
               id="destination"
-              type="tel"
-              placeholder="+91 98765 43210"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
               required
               disabled={!config?.configured}
-            />
+            >
+              <option value="">Choose an approved recipient</option>
+              {config?.allowedNumbers?.map((number) => (
+                <option key={number.id} value={number.id}>
+                  {number.label}
+                </option>
+              ))}
+            </select>
             <p className="fine-print">
               {config?.allowedNumbers?.length
-                ? "Approved recipients end in " +
-                  config.allowedNumbers.map((n) => n.id).join(", ")
+                ? "Only verified, pre-approved demo recipients can be called."
                 : "A verified test recipient must be configured on the backend."}
             </p>
             <label className="consent-check">

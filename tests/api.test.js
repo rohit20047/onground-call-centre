@@ -61,6 +61,8 @@ test(
       assert.equal((await fetch(base + "/api/config")).status, 401);
       const config = await (await request("/api/config")).json();
       assert.equal(config.configured, true);
+      assert.equal(config.allowedNumbers[0].id, "recipient-0");
+      assert.ok(!JSON.stringify(config).includes("+918888888888"));
       assert.equal(JSON.stringify(config).includes("not-a-real-key"), false);
       assert.equal(
         (
@@ -93,7 +95,10 @@ test(
       const first = await request("/api/calls", {
         method: "POST",
         headers: { "Idempotency-Key": "one" },
-        body: JSON.stringify({ to: "+918888888888", name: "Test recipient" }),
+        body: JSON.stringify({
+          recipientId: config.allowedNumbers[0].id,
+          name: "Test recipient",
+        }),
       });
       assert.equal(first.status, 201);
       const call = await first.json();

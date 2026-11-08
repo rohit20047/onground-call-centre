@@ -97,8 +97,8 @@ app.get("/api/config", (req, res) =>
     agentPhone: agentPhone
       ? agentPhone.slice(0, 3) + "••••••" + agentPhone.slice(-4)
       : null,
-    allowedNumbers: approved.map((n) => ({
-      id: n.slice(-4),
+    allowedNumbers: approved.map((n, index) => ({
+      id: "recipient-" + index,
       label: n.slice(0, 3) + " •••••• " + n.slice(-4),
     })),
     missing: [
@@ -116,25 +116,27 @@ let initiating = false,
 const inFlight = new Map();
 app.post("/api/calls", async (req, res) => {
   if (!configured)
-    return res
-      .status(503)
-      .json({
-        error:
-          "Real calling needs a verified agent phone, ExoPhone caller ID, and approved recipient. Configure these on the server first.",
-      });
+    return res.status(503).json({
+      error:
+        "Real calling needs a verified agent phone, ExoPhone caller ID, and approved recipient. Configure these on the server first.",
+    });
   let to;
   try {
-    to = normalizePhone(req.body.to);
+    const selected = req.body.recipientId;
+    if (selected != null) {
+      const match = /^recipient-(\d+)$/.exec(String(selected));
+      if (!match || !approved[Number(match[1])])
+        throw new Error("Choose an approved demo recipient.");
+      to = approved[Number(match[1])];
+    } else to = normalizePhone(req.body.to);
   } catch (e) {
     return res.status(400).json({ error: e.message });
   }
   if (!approved.includes(to))
-    return res
-      .status(403)
-      .json({
-        error:
-          "This number is not approved for the demo. Choose a configured recipient.",
-      });
+    return res.status(403).json({
+      error:
+        "This number is not approved for the demo. Choose a configured recipient.",
+    });
   if (to === normalizePhone(agentPhone))
     return res
       .status(400)
@@ -143,12 +145,10 @@ app.post("/api/calls", async (req, res) => {
   if (key && calls.some((c) => c.requestKey === key))
     return res.json(calls.find((c) => c.requestKey === key));
   if (initiating || calls.some((c) => !terminal.has(c.status)))
-    return res
-      .status(409)
-      .json({
-        error:
-          "A call is already being placed or is active. Finish it before starting another.",
-      });
+    return res.status(409).json({
+      error:
+        "A call is already being placed or is active. Finish it before starting another.",
+    });
   if (Date.now() - lastCallAt < 15000)
     return res
       .status(429)
@@ -210,7 +210,9 @@ app.get("/api/calls/:id", async (req, res) => {
   if (
     call.providerId &&
     (!terminal.has(call.status) ||
-      Date.now() - Date.parse(call.updatedAt || call.createdAt) < 180000)
+      (!call.finalized &&
+        Date.now() - Date.parse(call.terminalObservedAt || call.createdAt) <
+          180000))
   ) {
     try {
       if (!inFlight.has(call.id))
@@ -218,7 +220,7 @@ app.get("/api/calls/:id", async (req, res) => {
           call.id,
           exotelRequest(
             config,
-            `Calls/${encodeURIComponent(call.providerId)}.json`,
+            `Calls/${encodeURIComponent(call.providerId)}.json?details=true`,
           ).finally(() => inFlight.delete(call.id)),
         );
       const data = await inFlight.get(call.id);
