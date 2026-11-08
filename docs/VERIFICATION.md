@@ -1,4 +1,4 @@
-# Verification and remaining submission gates
+# Verification results and limits
 
 ## Confirmed
 
@@ -12,15 +12,16 @@
 
 - Successful real telephone conversation on 8 November 2026: provider status completed, both call legs completed, 15 seconds of conversation; the user confirmed both phones rang and two-way audio worked. Raw provider records are kept privately.
 
-## Remaining submission gates
+## Delivery and limits
 
 - Initial KYC rejection was resolved for the verified-user trial flow. Actual two-way calling is now proven by provider details and participant confirmation.
 - Trial caller ID/API eligibility has been demonstrated with two verified users.
 - Exotel WebRTC access: not enabled; use the documented phone bridge for baseline calling.
 - Public repository published with user approval: https://github.com/rohit20047/onground-call-centre . Source ZIP and complete history bundle are also prepared.
 - Temporary live URL: https://pcs-articles-refugees-indicate.trycloudflare.com . It forwards to the production Node server and requires that server/tunnel to stay running. Permanent hosting is not established.
-- Screen recording: capture prepared; browser tab-sharing selection is pending.
+- Screen recording completed and saved at `media/OnGround_Prototype_Demo.mp4`: 114.53 seconds, H.264 video, no audio track. Sampled frames were visually inspected for correct app capture and absence of full phone numbers, emails, or credentials.
+- The call captured in the recording completed both provider legs and reported 19 seconds of conversation.
 
-Build/tests and authentication are not substitutes for proof that a real phone rang and an answered conversation worked. The real-call test is complete; the assignment remains incomplete until the screen recording and final submission package are ready.
+Build/tests and authentication are not substitutes for proof that a real phone rang and an answered conversation worked. The real-call test is complete; the screen recording and source package are ready for the owner’s review. No submission email was sent.
 
 The requirement-by-requirement completion audit is in `SUBMISSION_CHECKLIST.md`. A local Git bundle was verified to contain the full history. The prepared ZIP was scanned against the stored API credentials and demo access code; none were included.

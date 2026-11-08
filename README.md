@@ -6,6 +6,7 @@ An original React + Node.js implementation of the supplied Call Centre reference
 
 - Repository: https://github.com/rohit20047/onground-call-centre
 - Temporary live preview: https://pcs-articles-refugees-indicate.trycloudflare.com
+- [Watch/download the 115-second screen recording](docs/media/OnGround_Prototype_Demo.mp4). It includes an actual API-triggered call and its completed history entry.
 - A separate demo access code is required and is not committed to this repository.
 - The temporary link depends on the local server/tunnel remaining running; it is not permanent hosting.
 - Real telephone calling was verified on 8 November 2026: both phones rang, both participants answered, and the user confirmed two-way audio. Exotel reported both legs completed and 15 seconds of conversation.
@@ -118,5 +119,9 @@ The first attempt was rejected while the recipient was not yet a verified accoun
 OpenAI Codex assisted with requirements analysis, original implementation, documentation, and testing. The supplied HTML was inspected as a visual/interaction reference; its source was not copied into the application. Be prepared to explain the call lifecycle, access controls, state management, and prototype storage tradeoffs.
 
 ## Submission
+
+The finished screen recording is `docs/media/OnGround_Prototype_Demo.mp4` (114.53 seconds, H.264 MP4, approximately 1.3 MB). It captures the app tab only, without microphone or phone-call audio. The recorded call completed both provider legs and reported 19 seconds of conversation. The earlier test also had user-confirmed two-way audio. Sample lead names in the app are illustrative; all actual calls go only to the approved demo recipient.
+
+No submission email has been sent. The owner will review and submit the artifacts.
 
 Required: GitHub repository link, live demo link, and a screen recording no longer than two minutes showing an actual call to a telephone number. See `docs/DEMO_GUIDE.md` for the sequence and `docs/VERIFICATION.md` for the current evidence and outstanding gates. Do not submit a screen-only demonstration as proof of working calling.

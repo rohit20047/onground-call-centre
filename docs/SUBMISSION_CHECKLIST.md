@@ -14,11 +14,11 @@ This checklist preserves the PDF's full submission scope. Implementation or a pa
 | Channel back/header, pinned input card, two choices/reply, bubbles and times    | `Pulse`; observed message send and pinned callback resolution                                | Implemented; browser checked                                                                                       |
 | Leads modal from dashboard, ICP/intent, collapsible signals, bounded paging     | `LeadsModal`; observed dashboard entry and next lead                                         | Implemented; browser checked                                                                                       |
 | Working real telephone call with a demo                                         | Node Exotel adapter; read-only provider authentication passed; test transport passes         | Verified: both call legs completed, provider reported 15 seconds of conversation, and user confirmed two-way audio |
-| Original code, restrained reference styling, own Git history                    | Source in this repository; four local implementation commits; inspected reference separately | Implemented; reference was not shipped                                                                             |
+| Original code, restrained reference styling, own Git history                    | Original source with incremental Git history; inspected reference separately | Implemented; reference was not shipped                                                                             |
 | README, run steps, stack/rationale, done/skipped, AI usage, calling explanation | `README.md`                                                                                  | Prepared                                                                                                           |
 | GitHub repository link                                                          | Local source repository and complete Git bundle available                                    | Published with user approval: https://github.com/rohit20047/onground-call-centre                                   |
 | Live working demo link                                                          | Local development and production processes; Node hosting manifest prepared                   | Temporary Cloudflare tunnel created; permanent hosting and longevity remain unproven                               |
-| Screen recording up to two minutes including real calling                       | `docs/DEMO_GUIDE.md` gives the recording sequence                                            | Recording prepared; tab-sharing selection pending                                                                  |
+| Screen recording up to two minutes including real calling                       | `docs/DEMO_GUIDE.md` gives the recording sequence                                            | Completed: 114.53-second H.264 MP4 containing the real API call flow and completed history                         |
 
 ## Bonuses
 
@@ -30,11 +30,11 @@ This checklist preserves the PDF's full submission scope. Implementation or a pa
 - Charting library: not used; charts are original CSS.
 - AI-to-human calling: not implemented; optional where possible in the assignment.
 
-## External actions still needed
+## Delivery status
 
 1. Completed: two account users are verified; trial API calling succeeded.
 2. Completed: both phones rang and both participants heard each other; provider details independently report completed call legs and 15 seconds of conversation.
 3. GitHub publication approval was received and the prepared source was published successfully. Keep credentials and private call data excluded from subsequent pushes.
-4. Publish and verify a live Node-backed demo using an approved hosting route, without adding payment details.
-5. Record the actual working call and brief screen walkthrough; keep the recording at or below two minutes.
-6. Prepare final links and submission contents for the user. The attached assignment's email instruction alone does not authorize sending mail.
+4. Temporary live Node-backed demo is reachable and unauthenticated API requests are rejected. Authenticated public-origin checks are pending the owner’s specific approval; permanent hosting is not configured. No payment details were added.
+5. Completed: the saved app-tab recording is 114.53 seconds and includes an actual completed call.
+6. Final artifacts are ready for user review. The user explicitly requested that no submission email be sent.
