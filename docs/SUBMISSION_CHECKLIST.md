@@ -13,10 +13,10 @@ This checklist preserves the PDF's full submission scope. Implementation or a pa
 | Pulse home, role/task agents, channels and Kudos | `Pulse`; observed channel list and agent groupings | Implemented; browser checked |
 | Channel back/header, pinned input card, two choices/reply, bubbles and times | `Pulse`; observed message send and pinned callback resolution | Implemented; browser checked |
 | Leads modal from dashboard, ICP/intent, collapsible signals, bounded paging | `LeadsModal`; observed dashboard entry and next lead | Implemented; browser checked |
-| Working real telephone call with a demo | Node Exotel adapter; read-only provider authentication passed; test transport passes | NOT COMPLETE: no approved second recipient or actual conversation evidence |
+| Working real telephone call with a demo | Node Exotel adapter; read-only provider authentication passed; test transport passes | NOT COMPLETE: approved recipient configured; actual API attempt rejected for account KYC; no answered conversation evidence |
 | Original code, restrained reference styling, own Git history | Source in this repository; four local implementation commits; inspected reference separately | Implemented; reference was not shipped |
 | README, run steps, stack/rationale, done/skipped, AI usage, calling explanation | `README.md` | Prepared |
-| GitHub repository link | Local source repository and complete Git bundle available | NOT COMPLETE: public publication approval pending |
+| GitHub repository link | Local source repository and complete Git bundle available | Published with user approval: https://github.com/rohit20047/onground-call-centre |
 | Live working demo link | Local development and production processes; Node hosting manifest prepared | NOT COMPLETE: external hosting is not verified |
 | Screen recording up to two minutes including real calling | `docs/DEMO_GUIDE.md` gives the recording sequence | NOT COMPLETE: real-call recording pending |
 
@@ -32,9 +32,9 @@ This checklist preserves the PDF's full submission scope. Implementation or a pa
 
 ## External actions still needed
 
-1. Receive the user's approved second recipient and confirm Exotel verification/API eligibility.
+1. Resolve Exotel's KYC rejection; the user has now supplied a distinct approved recipient. Confirm recipient verification/API eligibility.
 2. Place and answer a real test call with both people ready; retain provider evidence without exposing secrets.
-3. Obtain explicit approval for public GitHub publication. An automatic approval review rejected the previous public upload attempt; do not retry it or use another route without that approval.
+3. GitHub publication approval was received and the prepared source was published successfully. Keep credentials and private call data excluded from subsequent pushes.
 4. Publish and verify a live Node-backed demo using an approved hosting route, without adding payment details.
 5. Record the actual working call and brief screen walkthrough; keep the recording at or below two minutes.
 6. Prepare final links and submission contents for the user. The attached assignment's email instruction alone does not authorize sending mail.

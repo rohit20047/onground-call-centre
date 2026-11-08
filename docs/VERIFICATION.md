@@ -12,10 +12,10 @@
 
 ## Not yet proven
 
-- An actual telephone conversation through the app: needs an approved second verified number and recipient availability.
+- Actual call test on 8 November 2026: the app reached Exotel, but the provider rejected it with “Your account is not yet KYC compliant. This is mandatory before making outbound calls.” No provider call ID was returned. A recipient is configured; account eligibility still needs resolution.
 - Account caller ID/API permissions for trial calls: must be confirmed against Exotel before the real-call demo.
 - Exotel WebRTC access: not enabled; use the documented phone bridge for baseline calling.
-- Public repository publication: source ZIP and complete Git-history bundle are prepared; explicit public-sharing approval is pending.
+- Public repository published with user approval: https://github.com/rohit20047/onground-call-centre . Source ZIP and complete history bundle are also prepared.
 - Live hosted URL: local Node previews exist, but external deployment has not been verified.
 - Screen recording with real calling: pending the verified real-call test.
 
