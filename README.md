@@ -8,7 +8,7 @@ An original React + Node.js implementation of the supplied Call Centre reference
 - Temporary live preview: https://pcs-articles-refugees-indicate.trycloudflare.com
 - [Watch/download the 115-second screen recording](docs/media/OnGround_Prototype_Demo.mp4). It includes an actual API-triggered call and its completed history entry.
 - A separate demo access code is required and is not committed to this repository.
-- The temporary link depends on the local server/tunnel remaining running; it is not permanent hosting.
+- The temporary Cloudflare Tunnel URL is scheduled to remain available until **11:59 PM IST on 8 November 2026**. It may be unavailable on the morning of **9 November 2026**. Availability depends on the host computer staying awake, online, and running the app and tunnel; this is not permanent hosting.
 - Real telephone calling was verified on 8 November 2026: both phones rang, both participants answered, and the user confirmed two-way audio. Exotel reported both legs completed and 15 seconds of conversation.
 
 ## Run locally
