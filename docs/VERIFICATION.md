@@ -15,7 +15,10 @@
 - An actual telephone conversation through the app: needs an approved second verified number and recipient availability.
 - Account caller ID/API permissions for trial calls: must be confirmed against Exotel before the real-call demo.
 - Exotel WebRTC access: not enabled; use the documented phone bridge for baseline calling.
-- Live hosted URL and repository publication: pending final source packaging and deployment.
+- Public repository publication: source ZIP and complete Git-history bundle are prepared; explicit public-sharing approval is pending.
+- Live hosted URL: local Node previews exist, but external deployment has not been verified.
 - Screen recording with real calling: pending the verified real-call test.
 
 Build/tests and authentication are not substitutes for proof that a real phone rang and an answered conversation worked. The assignment remains incomplete until the required real-call demonstration and submission artifacts are ready.
+
+The requirement-by-requirement completion audit is in `SUBMISSION_CHECKLIST.md`. A local Git bundle was verified to contain the full history. The prepared ZIP was scanned against the stored API credentials and demo access code; none were included.
