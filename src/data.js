@@ -1,17 +1,339 @@
-export const agent={name:'Arvind Rajan',initials:'AR',store:'Koramangala',brand:'The Sleep Company'};
-export const leads=[
-{id:'ritu',name:'Ritu S.',initials:'RS',product:'Smart Luxe Mattress',value:13390,score:96,icp:87,intent:96,status:'Hot lead',sla:'2h left',story:'Visited RT Nagar and tried the Smart Luxe. Called back after her visit; her call was missed.',crossSell:'Mattress Protector · ₹1,999',finance:'Asked about total cost. Introduce the no-cost EMI option.',signals:['Asked for a comparison with another brand before deciding.','Wants to understand total cost and available financing.','Would like a final quote before the weekend.']},
-{id:'mukunda',name:'Mukunda',initials:'MK',product:'Ortho GRID',value:8490,score:90,icp:87,intent:91,status:'Open',sla:'23h left',story:'Tried the Ortho GRID in store. Comparing options with a competitor and wants a written quote.',crossSell:'Ergonomic pillow · ₹2,499',finance:'Asked specifically about EMI on Ortho GRID. Budget is a concern, not a blocker.',signals:['Financing related: asked about EMI options on the Ortho GRID.','Quotation demanded: comparing pricing before reaching out again.','Warranty related: wants clarity on the 100-night trial.']},
-{id:'faizan',name:'Faizan A.',initials:'FA',product:'Ortho GRID Pro',value:24990,score:86,icp:82,intent:88,status:'Callback',sla:'4h left',story:'Visited the store with family and asked about delivery. Missed call this morning.',crossSell:'Smart Recliner · ₹12,990',finance:'Offer a clear itemized quote with delivery charges.',signals:['Asked for stock availability.','Needs delivery before moving day.','Decision maker has joined the discussion.']},
-{id:'kavitha',name:'Kavitha R.',initials:'KR',product:'Hybrid Mattress',value:24990,score:81,icp:79,intent:84,status:'Warm lead',sla:'1d left',story:'Asked when she can visit to compare hybrid models. Needs help choosing firmness.',crossSell:'Pillow pair · ₹3,499',finance:'No financing discussion yet.',signals:['Requested an appointment for a store visit.','Asked about firmness options.','Shared room and bed dimensions.']},
-{id:'divya',name:'Divya P.',initials:'DP',product:'Luxe Mattress',value:18490,score:75,icp:76,intent:72,status:'Open',sla:'2d left',story:'Researching an upgrade from a foam mattress. Wants to discuss pricing after payday.',crossSell:'Mattress Protector · ₹1,999',finance:'Share available installment options without assuming eligibility.',signals:['Interested in an upgrade.','Requested follow-up after payday.','Asked about exchange options.']},
-{id:'suresh',name:'Suresh Nair',initials:'SN',product:'Smart Luxe',value:19990,score:69,icp:71,intent:68,status:'Follow up',sla:'3d left',story:'A returning customer exploring an upgrade for a guest bedroom.',crossSell:'Guest pillow set · ₹2,999',finance:'Budget to confirm in the next conversation.',signals:['Existing customer.','Product enquiry from a previous purchase.','Needs a revised quote.']}
+export const agent = {
+  name: "Arvind Rajan",
+  initials: "AR",
+  store: "Koramangala",
+  brand: "The Sleep Company",
+};
+export const leads = [
+  {
+    id: "ritu",
+    name: "Ritu S.",
+    initials: "RS",
+    product: "Smart Luxe Mattress",
+    value: 13390,
+    score: 96,
+    icp: 87,
+    intent: 96,
+    status: "Hot lead",
+    sla: "2h left",
+    story:
+      "Visited RT Nagar and tried the Smart Luxe. Called back after her visit; her call was missed.",
+    crossSell: "Mattress Protector · ₹1,999",
+    finance: "Asked about total cost. Introduce the no-cost EMI option.",
+    signals: [
+      "Asked for a comparison with another brand before deciding.",
+      "Wants to understand total cost and available financing.",
+      "Would like a final quote before the weekend.",
+    ],
+  },
+  {
+    id: "mukunda",
+    name: "Mukunda",
+    initials: "MK",
+    product: "Ortho GRID",
+    value: 8490,
+    score: 90,
+    icp: 87,
+    intent: 91,
+    status: "Open",
+    sla: "23h left",
+    story:
+      "Tried the Ortho GRID in store. Comparing options with a competitor and wants a written quote.",
+    crossSell: "Ergonomic pillow · ₹2,499",
+    finance:
+      "Asked specifically about EMI on Ortho GRID. Budget is a concern, not a blocker.",
+    signals: [
+      "Financing related: asked about EMI options on the Ortho GRID.",
+      "Quotation demanded: comparing pricing before reaching out again.",
+      "Warranty related: wants clarity on the 100-night trial.",
+    ],
+  },
+  {
+    id: "faizan",
+    name: "Faizan A.",
+    initials: "FA",
+    product: "Ortho GRID Pro",
+    value: 24990,
+    score: 86,
+    icp: 82,
+    intent: 88,
+    status: "Callback",
+    sla: "4h left",
+    story:
+      "Visited the store with family and asked about delivery. Missed call this morning.",
+    crossSell: "Smart Recliner · ₹12,990",
+    finance: "Offer a clear itemized quote with delivery charges.",
+    signals: [
+      "Asked for stock availability.",
+      "Needs delivery before moving day.",
+      "Decision maker has joined the discussion.",
+    ],
+  },
+  {
+    id: "kavitha",
+    name: "Kavitha R.",
+    initials: "KR",
+    product: "Hybrid Mattress",
+    value: 24990,
+    score: 81,
+    icp: 79,
+    intent: 84,
+    status: "Warm lead",
+    sla: "1d left",
+    story:
+      "Asked when she can visit to compare hybrid models. Needs help choosing firmness.",
+    crossSell: "Pillow pair · ₹3,499",
+    finance: "No financing discussion yet.",
+    signals: [
+      "Requested an appointment for a store visit.",
+      "Asked about firmness options.",
+      "Shared room and bed dimensions.",
+    ],
+  },
+  {
+    id: "divya",
+    name: "Divya P.",
+    initials: "DP",
+    product: "Luxe Mattress",
+    value: 18490,
+    score: 75,
+    icp: 76,
+    intent: 72,
+    status: "Open",
+    sla: "2d left",
+    story:
+      "Researching an upgrade from a foam mattress. Wants to discuss pricing after payday.",
+    crossSell: "Mattress Protector · ₹1,999",
+    finance:
+      "Share available installment options without assuming eligibility.",
+    signals: [
+      "Interested in an upgrade.",
+      "Requested follow-up after payday.",
+      "Asked about exchange options.",
+    ],
+  },
+  {
+    id: "suresh",
+    name: "Suresh Nair",
+    initials: "SN",
+    product: "Smart Luxe",
+    value: 19990,
+    score: 69,
+    icp: 71,
+    intent: 68,
+    status: "Follow up",
+    sla: "3d left",
+    story: "A returning customer exploring an upgrade for a guest bedroom.",
+    crossSell: "Guest pillow set · ₹2,999",
+    finance: "Budget to confirm in the next conversation.",
+    signals: [
+      "Existing customer.",
+      "Product enquiry from a previous purchase.",
+      "Needs a revised quote.",
+    ],
+  },
 ];
-export const missed=[{leadId:'faizan',time:'Today, 10:05 AM',context:'Visited store · in CRM'},{leadId:'kavitha',time:'Yesterday, 4:40 PM',context:'Warm lead'},{leadId:'divya',time:'Yesterday, 2:15 PM',context:'New enquiry'},{leadId:'ritu',time:'Today, 11:20 AM',context:'Visited store · in CRM'},{leadId:null,name:'Unknown',time:'Yesterday',context:'No prior record'}];
-export const recentSeed=[{id:'sample-1',name:'Mukunda R.',type:'incoming',when:'Today, 10:42 AM',duration:252,score:83,summary:'Discussed pressure relief and the Ortho GRID. Quote requested; follow up on Thursday.',sample:true},{id:'sample-2',name:'Kavitha R.',type:'outgoing',when:'Yesterday, 4:10 PM',duration:125,score:67,summary:'Explained hybrid firmness options and arranged a store visit.',sample:true},...missed.map((c,i)=>({id:'sample-m'+i,name:leads.find(l=>l.id===c.leadId)?.name||'Unknown',type:'missed',when:c.time,duration:0,sample:true,summary:'Missed call. Return the call to learn more.'})),{id:'sample-3',name:'Faizan A.',type:'outgoing',when:'Monday, 2:20 PM',duration:400,score:92,summary:'Discussed delivery timing and warranty. Customer requested a callback.',sample:true}];
-export const channels=[{id:'callcentre-team',name:'callcentre-team',preview:'Manager: Review call QA scores this week!',unread:1},{id:'all-stores',name:'all-stores',preview:'New Ortho Grid campaign launches this week',unread:4},{id:'avani-coaching',name:'avani-coaching',preview:'Your warranty score needs a little attention',unread:1},{id:'manage-shipment',name:'manage-shipment',preview:'Ortho Grid Pro — ready for delivery',unread:1},{id:'quotation-tickets',name:'quotation-tickets',preview:'Quotation approval — awaiting approval',unread:1},{id:'new-hire-onboarding',name:'new-hire-onboarding',preview:'Welcome to the team!',unread:0}];
-export const tasksSeed=[{id:'callback',channel:'callcentre-team',title:'Confirm the 4:30pm callback',context:'Priya Iyer · likely billing dispute',choices:['Confirmed','Reschedule']},{id:'hot',channel:'AvaniBot',title:'Call now or reassign the 2 hot leads',context:'Untouched for 24h',choices:['Calling now','Reassign']},{id:'outcome',channel:'AvaniBot',title:"Log this morning’s call outcome",context:'Suresh Nair · plan upgrade enquiry',choices:['Converted','Callback','Not interested']}];
-export function initialMessages(channel){return channel==='callcentre-team'?[{id:'1',sender:'Sunita Rao',initials:'SR',time:'2:05 pm',text:'Team, our greeting-in-first-10s QA score is at 71% this week. Let’s get it to 85% together.'},{id:'2',sender:'Sunita Rao',initials:'SR',time:'2:06 pm',text:'Open every call with the greeting script, confirm the customer’s needs, and remember to mention the warranty.'},{id:'3',sender:'You',initials:'AR',time:'2:10 pm',text:'On it! I’ll make sure I open every call with the greeting script 🙌',own:true},{id:'4',sender:'Sunita Rao',initials:'SR',time:'2:14 pm',text:'Great attitude, Arvind 🌟'}]:[{id:'1',sender:channel==='AvaniBot'?'AvaniBot':'Sunita Rao',initials:channel==='AvaniBot'?'AV':'SR',time:'9:00 am',text:channel==='AvaniBot'?'Your sample daily brief: two hot leads need attention, a callback is due at 4:30pm, and one call outcome is waiting to be logged.':'Welcome! This is your team’s space for updates, questions, and getting things done.'}];}
-export const practiceSteps=[{name:'Opening & intent',script:'Hello, this is Arvind from The Sleep Company. Is now a good time to speak about the mattress you tried?',tip:'Introduce yourself, name the brand, and ask permission to continue.'},{name:'Needs discovery',script:'What matters most to you in a mattress — pressure relief, firmness, or your budget?',tip:'Ask an open question and pause to hear the answer.'},{name:'Price objection',script:'I understand the price matters. Would it help to compare the benefits and discuss available EMI options?',tip:'Acknowledge the concern before offering options.'},{name:'Close & callback',script:'Would you like me to send the quote and call you Thursday at 4:30pm?',tip:'Finish with one clear, agreed next step.'}];
-export const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n);
-export const duration=s=>s?`${Math.floor(s/60)}m ${String(s%60).padStart(2,'0')}s`:'—';
+export const missed = [
+  {
+    leadId: "faizan",
+    time: "Today, 10:05 AM",
+    context: "Visited store · in CRM",
+  },
+  { leadId: "kavitha", time: "Yesterday, 4:40 PM", context: "Warm lead" },
+  { leadId: "divya", time: "Yesterday, 2:15 PM", context: "New enquiry" },
+  {
+    leadId: "ritu",
+    time: "Today, 11:20 AM",
+    context: "Visited store · in CRM",
+  },
+  {
+    leadId: null,
+    name: "Unknown",
+    time: "Yesterday",
+    context: "No prior record",
+  },
+];
+export const recentSeed = [
+  {
+    id: "sample-1",
+    name: "Mukunda R.",
+    type: "incoming",
+    when: "Today, 10:42 AM",
+    duration: 252,
+    score: 83,
+    summary:
+      "Discussed pressure relief and the Ortho GRID. Quote requested; follow up on Thursday.",
+    sample: true,
+  },
+  {
+    id: "sample-2",
+    name: "Kavitha R.",
+    type: "outgoing",
+    when: "Yesterday, 4:10 PM",
+    duration: 125,
+    score: 67,
+    summary: "Explained hybrid firmness options and arranged a store visit.",
+    sample: true,
+  },
+  ...missed.map((c, i) => ({
+    id: "sample-m" + i,
+    name: leads.find((l) => l.id === c.leadId)?.name || "Unknown",
+    type: "missed",
+    when: c.time,
+    duration: 0,
+    sample: true,
+    summary: "Missed call. Return the call to learn more.",
+  })),
+  {
+    id: "sample-3",
+    name: "Faizan A.",
+    type: "outgoing",
+    when: "Monday, 2:20 PM",
+    duration: 400,
+    score: 92,
+    summary:
+      "Discussed delivery timing and warranty. Customer requested a callback.",
+    sample: true,
+  },
+];
+export const channels = [
+  {
+    id: "callcentre-team",
+    name: "callcentre-team",
+    preview: "Manager: Review call QA scores this week!",
+    unread: 1,
+  },
+  {
+    id: "all-stores",
+    name: "all-stores",
+    preview: "New Ortho Grid campaign launches this week",
+    unread: 4,
+  },
+  {
+    id: "avani-coaching",
+    name: "avani-coaching",
+    preview: "Your warranty score needs a little attention",
+    unread: 1,
+  },
+  {
+    id: "manage-shipment",
+    name: "manage-shipment",
+    preview: "Ortho Grid Pro — ready for delivery",
+    unread: 1,
+  },
+  {
+    id: "quotation-tickets",
+    name: "quotation-tickets",
+    preview: "Quotation approval — awaiting approval",
+    unread: 1,
+  },
+  {
+    id: "new-hire-onboarding",
+    name: "new-hire-onboarding",
+    preview: "Welcome to the team!",
+    unread: 0,
+  },
+];
+export const tasksSeed = [
+  {
+    id: "callback",
+    channel: "callcentre-team",
+    title: "Confirm the 4:30pm callback",
+    context: "Priya Iyer · likely billing dispute",
+    choices: ["Confirmed", "Reschedule"],
+  },
+  {
+    id: "hot",
+    channel: "AvaniBot",
+    title: "Call now or reassign the 2 hot leads",
+    context: "Untouched for 24h",
+    choices: ["Calling now", "Reassign"],
+  },
+  {
+    id: "outcome",
+    channel: "AvaniBot",
+    title: "Log this morning’s call outcome",
+    context: "Suresh Nair · plan upgrade enquiry",
+    choices: ["Converted", "Callback", "Not interested"],
+  },
+];
+export function initialMessages(channel) {
+  return channel === "callcentre-team"
+    ? [
+        {
+          id: "1",
+          sender: "Sunita Rao",
+          initials: "SR",
+          time: "2:05 pm",
+          text: "Team, our greeting-in-first-10s QA score is at 71% this week. Let’s get it to 85% together.",
+        },
+        {
+          id: "2",
+          sender: "Sunita Rao",
+          initials: "SR",
+          time: "2:06 pm",
+          text: "Open every call with the greeting script, confirm the customer’s needs, and remember to mention the warranty.",
+        },
+        {
+          id: "3",
+          sender: "You",
+          initials: "AR",
+          time: "2:10 pm",
+          text: "On it! I’ll make sure I open every call with the greeting script 🙌",
+          own: true,
+        },
+        {
+          id: "4",
+          sender: "Sunita Rao",
+          initials: "SR",
+          time: "2:14 pm",
+          text: "Great attitude, Arvind 🌟",
+        },
+      ]
+    : [
+        {
+          id: "1",
+          sender: channel === "AvaniBot" ? "AvaniBot" : "Sunita Rao",
+          initials: channel === "AvaniBot" ? "AV" : "SR",
+          time: "9:00 am",
+          text:
+            channel === "AvaniBot"
+              ? "Your sample daily brief: two hot leads need attention, a callback is due at 4:30pm, and one call outcome is waiting to be logged."
+              : "Welcome! This is your team’s space for updates, questions, and getting things done.",
+        },
+      ];
+}
+export const practiceSteps = [
+  {
+    name: "Opening & intent",
+    script:
+      "Hello, this is Arvind from The Sleep Company. Is now a good time to speak about the mattress you tried?",
+    tip: "Introduce yourself, name the brand, and ask permission to continue.",
+  },
+  {
+    name: "Needs discovery",
+    script:
+      "What matters most to you in a mattress — pressure relief, firmness, or your budget?",
+    tip: "Ask an open question and pause to hear the answer.",
+  },
+  {
+    name: "Price objection",
+    script:
+      "I understand the price matters. Would it help to compare the benefits and discuss available EMI options?",
+    tip: "Acknowledge the concern before offering options.",
+  },
+  {
+    name: "Close & callback",
+    script:
+      "Would you like me to send the quote and call you Thursday at 4:30pm?",
+    tip: "Finish with one clear, agreed next step.",
+  },
+];
+export const money = (n) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(n);
+export const duration = (s) =>
+  s ? `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s` : "—";

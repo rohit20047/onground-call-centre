@@ -4,7 +4,7 @@ An original React + Node.js implementation of the supplied Call Centre reference
 
 ## Run locally
 
-Requires Node.js 22+ and npm.
+Requires Node.js 22.12+ and npm.
 
 ```sh
 npm ci
@@ -64,17 +64,17 @@ Recording is explicitly disabled. This version speaks through the agent's phone,
 
 ### Required server configuration
 
-| Variable | Meaning |
-| --- | --- |
-| `EXOTEL_ACCOUNT_SID` | Exotel account identifier |
-| `EXOTEL_API_KEY` | API username from API Settings |
-| `EXOTEL_API_TOKEN` | API secret from API Settings |
-| `EXOTEL_API_HOST` | Account region: `api.exotel.com` or `api.in.exotel.com` |
-| `EXOTEL_AGENT_NUMBER` | Verified agent phone, e.g. country code + mobile number |
-| `EXOTEL_CALLER_ID` | Account's assigned ExoPhone, in the format Exotel expects |
+| Variable                 | Meaning                                                             |
+| ------------------------ | ------------------------------------------------------------------- |
+| `EXOTEL_ACCOUNT_SID`     | Exotel account identifier                                           |
+| `EXOTEL_API_KEY`         | API username from API Settings                                      |
+| `EXOTEL_API_TOKEN`       | API secret from API Settings                                        |
+| `EXOTEL_API_HOST`        | Account region: `api.exotel.com` or `api.in.exotel.com`             |
+| `EXOTEL_AGENT_NUMBER`    | Verified agent phone, e.g. country code + mobile number             |
+| `EXOTEL_CALLER_ID`       | Account's assigned ExoPhone, in the format Exotel expects           |
 | `EXOTEL_ALLOWED_NUMBERS` | Comma-separated approved recipient numbers, including country codes |
-| `DEMO_ACCESS_TOKEN` | Separate reviewer access code; required in production |
-| `CALLS_DATA_DIR` | Optional persistent call-record directory |
+| `DEMO_ACCESS_TOKEN`      | Separate reviewer access code; required in production               |
+| `CALLS_DATA_DIR`         | Optional persistent call-record directory                           |
 
 The setup panel reports missing configuration without exposing secrets. Exotel trial accounts may restrict calls to verified users added to the account and may require KYC for broader access. Account enablement is not implied by the presence of API credentials. Provider errors remain visible. Timeouts or ambiguous provider failures are stored as `unknown` to prevent accidental repeat billable calls; reconcile the call in Exotel before retrying. There is intentionally no unauthenticated provider webhook; status is read through the authenticated provider API instead.
 

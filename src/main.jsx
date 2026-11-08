@@ -1,52 +1,2215 @@
-import React,{useState,useEffect,useRef} from 'react';
-import {createRoot} from 'react-dom/client';
-import {LayoutDashboard,Phone,PhoneIncoming,PhoneOutgoing,PhoneMissed,History,CalendarDays,MessagesSquare,Sparkles,Bell,ChevronDown,ChevronRight,ChevronLeft,ArrowLeft,Send,X,Check,Clock,Headphones,Target,TrendingUp,Trophy,Users,Hash,Menu,Settings,ShieldCheck,Info,Mic,Play,Square,Search,Pin,CheckCircle2,ExternalLink} from 'lucide-react';
-import {agent,leads,missed,recentSeed,channels,tasksSeed,initialMessages,practiceSteps,money,duration} from './data';
-import './styles.css';
-const Icon=({as:Component,...props})=><Component size={16} strokeWidth={1.8} {...props}/>;
-function useSaved(key,initial){const [value,set]=useState(()=>{try{return JSON.parse(localStorage.getItem(key))??initial;}catch{return initial;}});useEffect(()=>{localStorage.setItem(key,JSON.stringify(value));},[key,value]);return [value,set];}
-const headers={'Content-Type':'application/json'};
-async function api(path,options={}){const response=await fetch('/api'+path,{...options,headers:{...headers,'X-Demo-Token':sessionStorage.getItem('demo-token')||'',...(options.headers||{})}});const data=await response.json();if(!response.ok){const e=new Error(data.error||'Request failed');e.status=response.status;throw e;}return data;}
-function Avatar({initials,small=false,tone='green'}){return <span className={`avatar ${tone} ${small?'small':''}`}>{initials}</span>;}
-function Modal({title,subtitle,children,onClose,wide=false}){const dialog=useRef(null);useEffect(()=>{const previous=document.activeElement;dialog.current?.focus();document.body.style.overflow='hidden';function key(e){if(e.key==='Escape')onClose();if(e.key==='Tab'){const nodes=dialog.current?.querySelectorAll('button:not(:disabled),input,textarea,select,[tabindex="0"]');if(!nodes?.length)return;const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&(document.activeElement===first||document.activeElement===dialog.current)){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}document.addEventListener('keydown',key);return()=>{document.body.style.overflow='';document.removeEventListener('keydown',key);previous?.focus();};},[onClose]);return <div className="modal-scrim" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><section ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className={`modal ${wide?'wide':''}`}><header className="modal-head"><div><h2>{title}</h2>{subtitle&&<p>{subtitle}</p>}</div><button className="icon-button" aria-label="Close dialog" onClick={onClose}><X size={18}/></button></header><div className="modal-content">{children}</div></section></div>;}
-function App(){
- const [view,setView]=useState(location.hash.slice(1)||'dashboard'),[navOpen,setNavOpen]=useState(false),[modal,setModal]=useState(null),[leadIndex,setLeadIndex]=useState(0),[callLead,setCallLead]=useState(null),[channel,setChannel]=useState(null),[messages,setMessages]=useSaved('og-messages',{}),[resolved,setResolved]=useSaved('og-resolved',{}),[period,setPeriod]=useState('This Week'),[config,setConfig]=useState(null),[realCalls,setRealCalls]=useState([]),[toast,setToast]=useState(''),[access,setAccess]=useState(false);
- const notify=text=>{setToast(text);setTimeout(()=>setToast(''),4200);};
- const refresh=async()=>{try{const [c,r]=await Promise.all([api('/config'),api('/calls')]);setConfig(c);setRealCalls(r);setAccess(false);}catch(e){if(e.status===401)setAccess(true);else notify('Backend unavailable. Real calling is temporarily unavailable.');}};
- useEffect(()=>{refresh();const hash=()=>setView(location.hash.slice(1)||'dashboard');addEventListener('hashchange',hash);return()=>removeEventListener('hashchange',hash);},[]);
- function navigate(next){setView(next);location.hash=next;setNavOpen(false);setChannel(null);}
- function openChannel(id){navigate('pulse');setChannel(id);}
- function leadModal(i=0){setLeadIndex(i);setModal('leads');}
- function startCall(lead){setCallLead(lead||{name:'Demo recipient'});setModal('call');}
- const unresolved=tasksSeed.filter(t=>!resolved[t.id]);
- const resolveTask=(id,text)=>{setResolved({...resolved,[id]:text});appendMessage(tasksSeed.find(t=>t.id===id).channel,text);notify('Response saved. Task marked done.');};
- function appendMessage(id,text){const current=messages[id]||initialMessages(id);setMessages(prev=>({...prev,[id]:[...(prev[id]||current),{id:crypto.randomUUID(),sender:'You',initials:'AR',own:true,text,time:new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit',hour12:true})}]}));}
- const sidebar=<><a className="sidebar-brand" href="#dashboard" onClick={()=>navigate('dashboard')}>On-Ground<span>.ai</span></a><nav aria-label="Main navigation"><Nav icon={LayoutDashboard} label="Dashboard" active={view==='dashboard'} onClick={()=>navigate('dashboard')}/><div className="nav-parent"><Icon as={Phone}/><span>Plan</span><ChevronDown size={13}/></div><div className="subnav">{[['outgoing','Calls to make',PhoneOutgoing],['incoming','Incoming',PhoneIncoming],['recent','Recent',History],['practice','Practise a call',Headphones]].map(([id,label,icon])=><Nav key={id} icon={icon} label={label} active={view===id} onClick={()=>navigate(id)}/>)}</div><Nav icon={CalendarDays} label="Calendar" active={view==='calendar'} onClick={()=>navigate('calendar')}/><Nav icon={MessagesSquare} label="Pulse" active={view==='pulse'} onClick={()=>navigate('pulse')}/></nav><div className="sidebar-bottom"><div className="workspace-symbol">TSC</div><div><strong>The Sleep Company</strong><small>Koramangala workspace</small></div></div></>;
- return <div className="app"><aside className={navOpen?'sidebar mobile-open':'sidebar'}>{sidebar}</aside>{navOpen&&<button className="mobile-scrim" aria-label="Close navigation" onClick={()=>setNavOpen(false)}/>}<div className="workspace"><header className="topbar"><div className="topbar-brand"><button className="icon-button mobile-menu" aria-label="Open navigation" onClick={()=>setNavOpen(true)}><Menu size={19}/></button><span className="logo-mark">OG</span><span>On-Ground.ai</span><span className="top-divider"/><span className="workspace-label">Call Centre</span></div><div className="topbar-actions"><button className="notification" aria-label="Notifications" onClick={()=>setModal('notifications')}><Bell size={17}/><i/></button><button className="score-pill" onClick={()=>setModal('score')} aria-label="Your OG Score: 76">76</button><button className="rank-pill" onClick={()=>setModal('score')}><Trophy size={12}/> #3</button><button className="profile-button" aria-label="Agent profile and calling setup" onClick={()=>setModal('settings')}>AR</button></div></header>
- <main>{view==='dashboard'?<Dashboard period={period} setPeriod={setPeriod} openLeads={leadModal} openChannel={openChannel} navigate={navigate} unresolved={unresolved} onScore={()=>setModal('score')}/>:['outgoing','incoming','recent'].includes(view)?<Plan view={view} openCall={startCall} onReview={call=>setModal({kind:'review',call})} realCalls={realCalls} openLeads={leadModal}/>:view==='calendar'?<Calendar/>:view==='pulse'?<Pulse channel={channel} setChannel={setChannel} unresolved={unresolved} resolveTask={resolveTask} messages={messages} appendMessage={appendMessage} openLeads={leadModal}/>:view==='practice'?<Practice notify={notify}/>:<div className="empty"><h2>Page not found</h2><button onClick={()=>navigate('dashboard')}>Go to dashboard</button></div>}</main>
- <footer className="app-footer"><span>On-Ground.ai · Call Centre workspace</span><span className="seed-label"><span/> Sample business data · Real Exotel calling</span></footer>
- {!(view==='pulse'&&channel)&&<button className="floating-call" onClick={()=>startCall(null)} aria-label="Place a real telephone call"><Phone size={20}/></button>}</div>
- {modal==='leads'&&<LeadsModal index={leadIndex} setIndex={setLeadIndex} onClose={()=>setModal(null)} openCall={startCall}/>}
- {modal==='call'&&<CallModal lead={callLead} config={config} onClose={()=>{setModal(null);refresh();}} onRefresh={refresh} notify={notify}/>}
- {modal==='settings'&&<Modal title="Your workspace" subtitle="Agent profile & calling setup" onClose={()=>setModal(null)}><div className="profile-card"><Avatar initials="AR"/><div><h3>{agent.name}</h3><p>{agent.brand} · {agent.store}</p><span className="badge">Call Centre Staff · M0</span></div></div><h3>Real calling · Exotel</h3><p className="help-text">This version connects your verified agent phone to an approved recipient. Answer your phone first, then Exotel rings the recipient.</p><div className="status-panel"><ShieldCheck size={19}/><div><strong>{config?.configured?'Ready to make a real call':'Calling setup needs attention'}</strong><p>{config?.configured?`Agent: ${config.agentPhone}`:`Missing: ${config?.missing?.join(', ')||'backend connection'}`}</p></div></div><p className="help-text">Browser microphone calling is pending Exotel WebRTC access. Recording is off. Calls are limited to three minutes.</p><button className="primary" onClick={()=>startCall(null)}><Phone size={15}/> Open calling</button></Modal>}
- {modal==='notifications'&&<Modal title="Notifications" subtitle="Your shift at a glance · sample updates" onClose={()=>setModal(null)}>{unresolved.map(t=><button className="notification-row" key={t.id} onClick={()=>{setModal(null);openChannel(t.channel);}}><span className="notice-icon"><Pin size={17}/></span><div><strong>{t.title}</strong><p>{t.context}</p></div><ChevronRight size={16}/></button>)}{!unresolved.length&&<div className="empty"><CheckCircle2/>All caught up</div>}</Modal>}
- {modal==='score'&&<Modal title="Your OG Score™" subtitle="This week · sample coaching insights" onClose={()=>setModal(null)}><div className="score-large">76<span>/100</span></div><span className="positive">↑ 13 points this period</span><p>You’re in the top 28% of your store. Keep building on your rapport and product knowledge.</p>{[['Opening',88],['Discovery',81],['Product knowledge',84],['Objections',65],['Closing',58]].map(([name,n])=><div className="skill" key={name}><span>{name}</span><strong>{n}</strong><div className="track"><i style={{width:n+'%'}}/></div></div>)}<button className="primary" onClick={()=>{setModal(null);navigate('practice');}}>Practise your next conversation <ChevronRight size={15}/></button></Modal>}
- {modal?.kind==='review'&&<CallReview call={modal.call} onClose={()=>setModal(null)} notify={notify} refresh={refresh}/>}
- {access&&<AccessModal onUnlock={refresh}/>}
- {toast&&<div role="status" className="toast"><CheckCircle2 size={17}/>{toast}</div>}
- </div>;
+import React, { useState, useEffect, useRef } from "react";
+import { createRoot } from "react-dom/client";
+import {
+  LayoutDashboard,
+  Phone,
+  PhoneIncoming,
+  PhoneOutgoing,
+  PhoneMissed,
+  History,
+  CalendarDays,
+  MessagesSquare,
+  Sparkles,
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  ArrowLeft,
+  Send,
+  X,
+  Check,
+  Clock,
+  Headphones,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users,
+  Hash,
+  Menu,
+  Settings,
+  ShieldCheck,
+  Info,
+  Mic,
+  Play,
+  Square,
+  Search,
+  Pin,
+  CheckCircle2,
+  ExternalLink,
+} from "lucide-react";
+import {
+  agent,
+  leads,
+  missed,
+  recentSeed,
+  channels,
+  tasksSeed,
+  initialMessages,
+  practiceSteps,
+  money,
+  duration,
+} from "./data";
+import "./styles.css";
+const Icon = ({ as: Component, ...props }) => (
+  <Component size={16} strokeWidth={1.8} {...props} />
+);
+function useSaved(key, initial) {
+  const [value, set] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(key)) ?? initial;
+    } catch {
+      return initial;
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+  return [value, set];
 }
-function Nav({icon,label,active,onClick}){return <button className={`nav-item ${active?'active':''}`} onClick={onClick} aria-current={active?'page':undefined}><span className="nav-icon"><Icon as={icon}/></span><span>{label}</span></button>;}
-function SectionLabel({children,action,onClick}){return <div className="section-label"><span>{children}</span>{action&&<button onClick={onClick}>{action}<ChevronRight size={12}/></button>}</div>;}
-function Dashboard({period,setPeriod,openLeads,openChannel,navigate,unresolved,onScore}){return <div className="dashboard"><section className="dashboard-hero"><div className="greeting"><div><p>Good afternoon <span>👋</span></p><h1>{agent.name}</h1><span>{agent.brand} · Call Centre</span></div><div className="hero-controls"><span className="on-queue"><i/> On Queue</span><label className="period"><CalendarDays size={13}/><select aria-label="Dashboard date range" value={period} onChange={e=>setPeriod(e.target.value)}>{['Today','This Week','This Month','Last 30 Days'].map(v=><option key={v}>{v}</option>)}</select></label></div></div><div className="kpi-grid">{[{n:'76',label:'OG Score™',change:'↑ 13',icon:Target},{n:'4m 12s',label:'Avg handle time',change:'↓ 8%',icon:Clock},{n:'94%',label:'CSAT today',change:'↑ 2pt',icon:TrendingUp},{n:'2',label:'In queue',change:'● live',icon:Headphones}].map((k,i)=><button key={k.label} className="kpi" onClick={()=>i===0?onScore():navigate(i===3?'incoming':'recent')}><div className="kpi-top"><span>{k.label}</span><Icon as={k.icon}/></div><div className="kpi-value">{k.n}<small>{k.change}</small></div></button>)}</div></section><div className="dashboard-body"><div className="dashboard-columns"><div><section className="progress-card"><SectionLabel>My progress · {period==='Today'?'today':period.toLowerCase()}</SectionLabel><div className="progress-grid"><button onClick={()=>openLeads(0)}><span className="metric-icon"><Users size={17}/></span><div><strong>3 <small>↑ +1</small></strong><span>Leads Created</span></div></button><button onClick={()=>navigate('recent')}><span className="metric-icon"><PhoneOutgoing size={17}/></span><div><strong>2 <small>↑ +2</small></strong><span>Leads Called</span></div></button></div></section><SectionLabel action="Open planner" onClick={()=>navigate('incoming')}>Who's waiting</SectionLabel><div className="waiting-list">{[{name:'Priya Iyer',text:'Likely billing dispute — flagged before',time:'4m 20s',initials:'PI'},{name:'Suresh Nair',text:'Plan upgrade enquiry',time:'1m 50s',initials:'SN'}].map((p,i)=><button className="waiting-row" key={p.name} onClick={()=>navigate('incoming')}><span className="queue-icon"><Headphones size={16}/></span><div><strong>{p.name}</strong><small>{p.text}</small></div><span className={`time-badge ${i?'yellow':'red'}`}>{p.time}</span></button>)}</div></div><div className="dashboard-right"><section className="earnings-card"><div className="earnings-title"><span>💰 My earnings this month</span><small>₹800 to ₹6,000 slab</small></div><div className="earnings-value">₹5,200 <span>₹1,700 from coached moves</span></div><div className="track"><i style={{width:'86.6%'}}/></div><div className="earnings-caption"><span>Looking good, Arvind</span><span>₹800 to next slab</span></div></section><section className="tasks-card"><div className="tasks-header"><span><Target size={14}/> My Tasks</span><span className="count">{unresolved.length}</span></div>{unresolved.map((t,i)=><button key={t.id} className="task-row" onClick={()=>t.id==='hot'?openLeads(0):openChannel(t.channel)}><span className="task-icon"><Icon as={({callback:Phone,hot:Users,outcome:History})[t.id]}/></span><div><strong>{t.id==='callback'?'2 callbacks':t.id==='hot'?'2 hot leads':'1 outcome'}</strong><small>{t.id==='callback'?'next 4:30pm':t.id==='hot'?'untouched 24h':'to log'}</small></div><ChevronRight size={14}/></button>)}{!unresolved.length&&<p className="caught-up"><CheckCircle2 size={17}/> All caught up. Nice work!</p>}</section></div></div><BarChart title="Calls handled · last 7 days" values={[18,22,15,26,20,12,14]} color="green"/><BarChart title="CSAT trend · last 7 days" values={[88,90,85,92,89,91,94]} percent color="blue"/><div className="dashboard-note"><ShieldCheck size={13}/><span>Your next great conversation starts with a little preparation.</span><button onClick={()=>navigate('practice')}>Practise a call <ChevronRight size={12}/></button></div></div></div>;}
-function BarChart({title,values,percent,color}){return <section className="chart-section"><SectionLabel>{title}</SectionLabel><div className={`bar-chart ${color}`} role="img" aria-label={title+': '+values.join(', ')}>{values.map((v,i)=><div className="bar-column" key={i}><span>{v}{percent?'%':''}</span><div className="bar-track"><div className="bar" style={{height:(percent?v:100*v/28)+'%'}}/></div><small>{['Mon','Tue','Wed','Thu','Fri','Sat','Today'][i]}</small></div>)}</div></section>;}
-function Plan({view,openCall,onReview,realCalls,openLeads}){const [page,setPage]=useState(0),[expanded,setExpanded]=useState(null),[filter,setFilter]=useState('all');const totalPages=Math.ceil(leads.length/2);const recent=[...realCalls.map(c=>({...c,when:new Date(c.createdAt).toLocaleString('en-IN'),type:'outgoing'})),...recentSeed].filter(c=>filter==='all'||c.type===filter);return <div className="plan-page"><div className="page-ribbon"><div><span>Today's calling plan</span><h1>Planner</h1></div><span className="ribbon-date">{new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</span></div><div className="page-padding"><div className="page-heading"><div><h2>{view==='outgoing'?'Planned outgoing calls':view==='incoming'?'Missed calls':'Recent calls'}</h2><p>{view==='outgoing'?'Ranked by lead attractiveness score — tap a lead for the full picture':view==='incoming'?'Ranked by expected value — call the highest-value leads back first':'Tap a call to review its details and SOP'}</p></div><span className="badge subtle">{view==='outgoing'?leads.length+' leads':view==='incoming'?'Priority order':'Sample + live history'}</span></div>{view==='outgoing'&&<><div className="call-list">{leads.slice(page*2,page*2+2).map(l=><section key={l.id} className={`lead-row-card ${expanded===l.id?'expanded':''}`}><button className="lead-row" onClick={()=>setExpanded(expanded===l.id?null:l.id)} aria-expanded={expanded===l.id}><Avatar initials={l.initials}/><div className="lead-row-name"><strong>{l.name}</strong><small>Interested: {l.product} · {money(l.value)}</small></div><div className="lead-score"><strong>{l.score}</strong><small>Score</small></div><ChevronDown className={expanded===l.id?'rotate':''} size={15}/></button>{expanded===l.id&&<div className="lead-expanded"><div><SectionLabel>Story so far</SectionLabel><p>{l.story}</p></div><div className="detail-grid"><div><SectionLabel>Preferred product</SectionLabel><p>{l.product}</p></div><div><SectionLabel>Cross-sell</SectionLabel><p>{l.crossSell}</p></div></div><SectionLabel>EMI / financing</SectionLabel><p>{l.finance}</p><div className="button-row"><button className="primary" onClick={()=>openCall(l)}><Phone size={14}/> Place call</button><button className="secondary" onClick={()=>openLeads(leads.indexOf(l))}>View full lead <ChevronRight size={14}/></button></div></div>}</section>)}</div><div className="pager"><button className="icon-button" disabled={page===0} aria-label="Previous page" onClick={()=>{setPage(page-1);setExpanded(null);}}><ChevronLeft size={16}/></button><span>Page {page+1} of {totalPages}</span><button className="icon-button" disabled={page===totalPages-1} aria-label="Next page" onClick={()=>{setPage(page+1);setExpanded(null);}}><ChevronRight size={16}/></button></div></>}{view==='incoming'&&<><div className="missed-summary"><div><strong>5</strong><span>Missed today</span></div><div><strong>{money(81860)}</strong><span>Expected value at stake</span></div></div><div className="call-list">{missed.map((c,i)=>{const l=leads.find(l=>l.id===c.leadId);return <div className="incoming-row" key={i}><span className="call-type missed"><PhoneMissed size={17}/></span><div className="lead-row-name"><strong>{l?.name||c.name}</strong><small>Missed {c.time} · {c.context}</small></div><div className="callback-side"><strong>{l?money(l.value)+' expected':'New contact'}</strong><button className="call-back" onClick={()=>openCall(l||{name:'Unknown caller'})}><Phone size={12}/> Call back</button></div></div>;})}</div></>}{view==='recent'&&<><div className="filter-tabs" aria-label="Filter call history">{['all','incoming','outgoing','missed'].map(f=><button key={f} className={filter===f?'selected':''} onClick={()=>setFilter(f)}>{f}</button>)}</div><div className="call-list">{recent.map(c=><button className="recent-row" onClick={()=>onReview(c)} key={c.id}><span className={'call-type '+c.type}><Icon as={c.type==='missed'?PhoneMissed:c.type==='incoming'?PhoneIncoming:PhoneOutgoing}/></span><div className="lead-row-name"><strong>{c.name} {!c.sample&&<span className="real-badge">REAL CALL</span>}</strong><small>{c.when} · {duration(c.duration)}{c.status?' · '+c.status:''}</small></div><ChevronRight size={15}/></button>)}</div>{!recent.length&&<div className="empty">No calls match this filter.</div>}</>}</div></div>;}
-function LeadsModal({index,setIndex,onClose,openCall}){const l=leads[index];return <Modal title="Leads" subtitle={`Lead ${index+1} of ${leads.length} · SLA to close`} onClose={onClose}><div className="lead-pager"><div className="pager-dots">{leads.map((_,i)=><span key={i} className={index===i?'selected':''}/>)}</div><div><button aria-label="Previous lead" disabled={index===0} className="icon-button" onClick={()=>setIndex(index-1)}><ChevronLeft size={16}/></button><button aria-label="Next lead" disabled={index===leads.length-1} className="icon-button" onClick={()=>setIndex(index+1)}><ChevronRight size={16}/></button></div></div><div className="lead-status">● {l.status}<span>{l.sla}</span></div><div className="profile-card"><Avatar initials={l.initials}/><div><h3>{l.name}</h3><p>{l.product} · {money(l.value)}</p></div></div><p className="lead-note">Quote to be given to customer</p>{[['ICP fit',l.icp],['Lead intent score',l.intent]].map(([label,n])=><div className="score-line" key={label}><div><Target size={13}/><strong>{label}</strong><span>{n}%</span></div><div className="track"><i style={{width:n+'%'}}/></div></div>)}<details className="lead-details"><summary>ICP fit breakdown</summary>{[['Budget fit',80],['Need match',87],['Decision stage',65]].map(([label,n])=><div className="skill" key={label}><span>{label}</span><strong>{n}%</strong><div className="track"><i style={{width:n+'%'}}/></div></div>)}</details><details className="lead-details"><summary>How we got here</summary><p>{l.story}</p></details><details open className="lead-details buying-signals"><summary>Where we picked up signals</summary>{l.signals.map((s,i)=><div className="signal" key={s}><span>{['Financing related','Quotation demanded','Warranty related'][i]}</span><p>{s}</p></div>)}</details><div className="lead-sla"><Clock size={14}/><span>Cumulative missed: <strong>2</strong> · expired without close, visible to manager</span></div><button className="primary full-width" onClick={()=>openCall(l)}><Phone size={15}/> On-ground Call</button><p className="fine-print">Illustrative lead. Calling uses your approved demo recipient.</p></Modal>;}
-function Calendar(){const today=new Date(),[month,setMonth]=useState(new Date(today.getFullYear(),today.getMonth(),1)),[selected,setSelected]=useState(today.getDate()),[event,setEvent]=useState(null);const year=month.getFullYear(),m=month.getMonth(),days=new Date(year,m+1,0).getDate(),offset=new Date(year,m,1).getDay();const events=[{day:Math.min(today.getDate()+1,days),time:'11:00 AM',title:'SOP coaching session',person:'Sunita Rao · Manager',type:'Coaching'},{day:Math.min(today.getDate()+3,days),time:'2:30 PM',title:'Warranty pitch refresher',person:'L&D team · learning session',type:'Learning'},{day:Math.min(today.getDate()+5,days),time:'10:00 AM',title:'Weekly team huddle',person:'Call Centre team',type:'Team meeting'},{day:Math.min(today.getDate(),days),time:'4:30 PM',title:'Customer callback',person:'Priya Iyer · follow-up',type:'Callback'}];const move=delta=>{setMonth(new Date(year,m+delta,1));setSelected(1);};return <div className="page-padding calendar-page"><div className="page-heading"><div><h1><CalendarDays size={21}/> Calendar</h1><p>Store visits, coaching sessions, and your next conversation</p></div><span className="badge subtle">Sample calendar</span></div><div className="info-strip"><Info size={15}/> Your schedule in one place. External mailbox sync is not connected.</div><div className="calendar-layout"><section className="calendar-card"><div className="calendar-toolbar"><button aria-label="Previous month" className="icon-button" onClick={()=>move(-1)}><ChevronLeft size={17}/></button><h2>{month.toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</h2><button className="secondary today-button" onClick={()=>{setMonth(new Date(today.getFullYear(),today.getMonth(),1));setSelected(today.getDate());}}>Today</button><button aria-label="Next month" className="icon-button" onClick={()=>move(1)}><ChevronRight size={17}/></button></div><div className="calendar-grid weekdays">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=><span key={d}>{d}</span>)}</div><div className="calendar-grid dates">{Array.from({length:offset},(_,i)=><span key={'blank'+i} className="blank"/>)}{Array.from({length:days},(_,i)=>{const day=i+1,isToday=day===today.getDate()&&m===today.getMonth()&&year===today.getFullYear();return <button aria-label={`${day} ${month.toLocaleDateString('en-IN',{month:'long',year:'numeric'})}`} key={day} className={`${selected===day?'selected':''} ${isToday?'is-today':''}`} onClick={()=>setSelected(day)}><span>{day}</span>{events.some(e=>e.day===day)&&<i/>}{isToday&&<small>Today</small>}</button>;})}</div></section><section className="calendar-events"><SectionLabel>{month.toLocaleDateString('en-IN',{month:'short'})} {selected} · agenda</SectionLabel>{events.filter(e=>e.day===selected).map((e,i)=><button className="event-card" key={i} onClick={()=>setEvent(e)}><span>{e.time}</span><h3>{e.title}</h3><p>{e.person}</p><span className="badge">{e.type}</span></button>)}{!events.some(e=>e.day===selected)&&<p className="help-text">No events on this date.</p>}<SectionLabel>Upcoming this month</SectionLabel>{events.filter(e=>e.day!==selected).map((e,i)=><button className="agenda-row" key={i} onClick={()=>{setSelected(e.day);setEvent(e);}}><div className="agenda-date"><strong>{e.day}</strong><span>{month.toLocaleDateString('en-IN',{month:'short'})}</span></div><div><strong>{e.title}</strong><small>{e.time} · {e.person}</small></div><ChevronRight size={14}/></button>)}</section></div>{event&&<Modal title={event.title} subtitle={`${event.day} ${month.toLocaleDateString('en-IN',{month:'long',year:'numeric'})} · ${event.time}`} onClose={()=>setEvent(null)}><div className="status-panel"><CalendarDays size={20}/><div><strong>{event.type}</strong><p>{event.person}</p></div></div><p>This sample event helps you prepare for your shift. No invitation has been sent to an external calendar.</p><button className="primary" onClick={()=>setEvent(null)}>Done</button></Modal>}</div>;}
-function Pulse({channel,setChannel,unresolved,resolveTask,messages,appendMessage,openLeads}){const [draft,setDraft]=useState(''),[search,setSearch]=useState(''),[replies,setReplies]=useState({});const bottom=useRef(null);const chat=messages[channel]||initialMessages(channel);useEffect(()=>{bottom.current?.scrollIntoView({behavior:'smooth'});},[channel,messages]);const send=e=>{e.preventDefault();if(draft.trim()){appendMessage(channel,draft.trim());setDraft('');}};if(channel)return <div className="channel-page"><header className="channel-header"><button className="icon-button" aria-label="Back to Pulse" onClick={()=>setChannel(null)}><ArrowLeft size={19}/></button><div><h1>{channel==='AvaniBot'?<Sparkles size={18}/>:<Hash size={18}/>} {channel}</h1><p>{channel==='AvaniBot'?'Your shift companion · sample brief':'The Sleep Company · team channel'}</p></div><span className="channel-members"><Users size={14}/> 6 members</span></header>{unresolved.filter(t=>t.channel===channel).map(t=><section className="pinned-card" key={t.id}><div className="pin-label"><Pin size={12}/> Needs your input <span>pinned</span></div><h3>{t.title}</h3><p>{t.context}</p><div className="pin-actions">{t.choices.map(c=><button key={c} onClick={()=>resolveTask(t.id,c)}>{c}</button>)}{t.id==='hot'&&<button onClick={()=>openLeads(0)}>Review leads</button>}</div><form className="reply-form" onSubmit={e=>{e.preventDefault();if(replies[t.id]?.trim()){resolveTask(t.id,replies[t.id].trim());setReplies({...replies,[t.id]:''});}}}><input aria-label={'Reply to '+t.title} placeholder="Or type your answer…" value={replies[t.id]||''} onChange={e=>setReplies({...replies,[t.id]:e.target.value})}/><button aria-label={'Send answer to '+t.title} disabled={!replies[t.id]?.trim()}><Send size={14}/></button></form></section>)}<div className="chat-history"><div className="chat-day">Today · {channel}</div>{chat.map(msg=><div className={`chat-row ${msg.own?'own':''}`} key={msg.id}><Avatar initials={msg.initials} small tone={msg.own?'green':'gold'}/><div><div className="message-meta">{msg.sender}<time>{msg.time}</time></div><div className="chat-bubble">{msg.text}</div></div></div>)}<div ref={bottom}/></div><form className="chat-composer" onSubmit={send}><input aria-label={`Message ${channel}`} placeholder={`Message #${channel}…`} value={draft} maxLength={2000} onChange={e=>setDraft(e.target.value)}/><button type="button" className="emoji-button" aria-label="Add smile emoji" onClick={()=>setDraft(draft+' 😊')}>😊</button><button className="send-button" aria-label="Send message" disabled={!draft.trim()}><Send size={17}/></button></form></div>;
-return <div className="pulse-page"><div className="pulse-title"><div className="pulse-title-icon"><MessagesSquare size={21}/></div><div><h1>Pulse</h1><p>The Sleep Company · Koramangala</p></div><span className="badge">Your team, connected</span></div><div className="pulse-search"><Search size={16}/><input aria-label="Search Pulse channels" placeholder="Ask AvaniBot or search Pulse…" value={search} onChange={e=>setSearch(e.target.value)}/><span>{unresolved.length} needs input</span></div><section className="avani-card"><div className="avani-icon">✦</div><div><h2>AvaniBot <span>Always on</span></h2><p>Daily briefs, action items, and a little help moving forward.</p><div className="button-row"><button onClick={()=>setChannel('AvaniBot')}><Sparkles size={13}/> Daily Brief</button><button onClick={()=>setChannel('AvaniBot')}><MessagesSquare size={13}/> Ask a question</button></div></div><span className="avani-count">{unresolved.filter(t=>t.channel==='AvaniBot').length}</span></section><SectionLabel>Custom agents <span className="label-note">Set up by your manager</span></SectionLabel><div className="agent-groups"><SectionLabel>Role agents <span className="label-note">run a team</span></SectionLabel><button className="agent-row" onClick={()=>setChannel('callcentre-agent')}><span className="agent-marker purple"><Headphones size={16}/></span><div><strong># callcentre-agent</strong><small>Call Centre Agent</small></div><ChevronRight size={14}/></button><SectionLabel>Task agents <span className="label-note">move one metric</span></SectionLabel>{[['cross-sell-agent','Your attach rate','24%','↑ 2'],['sop-agent','Your SOP adherence','81%','↑ 2'],['lead-conversion-agent','Lead Conversion Agent',null,null],['capture-agent','Your capture coverage','78%','↑ 1']].map(([id,desc,value,change])=><button className="agent-row" key={id} onClick={()=>setChannel(id)}><span className="agent-marker"><Target size={16}/></span><div><strong># {id}</strong><small>{desc} · 5 members</small></div>{value&&<div className="agent-metric"><strong>{value}</strong><small>{change}</small></div>}<ChevronRight size={14}/></button>)}</div><SectionLabel>General</SectionLabel><button className="pulse-channel" onClick={()=>setChannel('customer-discussions')}><Avatar initials="CD" small/><div><strong>customer-discussions</strong><small>Sample customer conversations</small></div><span className="unread">2</span></button><button className="kudos-card" onClick={()=>setChannel('kudos')}><span className="kudos-icon">🏆</span><div><h3>Kudos <span>3 new</span></h3><p>“Great work with Mukunda — closed that objection beautifully!” — Sunita Rao</p></div><div className="kudos-count"><strong>12</strong><small>All-time</small></div></button><SectionLabel>Channels</SectionLabel><div className="channel-list">{channels.filter(c=>(c.name+' '+c.preview).toLowerCase().includes(search.toLowerCase())).map(c=><button className="pulse-channel" key={c.id} onClick={()=>setChannel(c.id)}><span className="hash-icon">#</span><div><strong>{c.name}</strong><small>{c.preview}</small></div><span className="channel-time">{c.id==='callcentre-team'?'Now':'10:22 am'}</span>{c.unread>0&&<span className="unread">{c.id==='callcentre-team'?unresolved.filter(t=>t.channel===c.id).length:c.unread}</span>}</button>)}</div><SectionLabel>Direct messages</SectionLabel>{[['SR','Sunita Rao','Great work with Mukunda — keep it up'],['PK','Priya Krishnan','Can you cover my 3pm slot today?'],['RK','Raju Kumar','Nice cross-sell on the Tranquo chair!']].map(([initials,name,preview])=><button className="pulse-channel" key={name} onClick={()=>setChannel(name)}><Avatar initials={initials} small tone="gold"/><div><strong>{name}</strong><small>{preview}</small></div><ChevronRight size={14}/></button>)}</div>;}
-function CallModal({lead,config,onClose,onRefresh,notify}){const [destination,setDestination]=useState(''),[call,setCall]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');const idempotency=useRef(crypto.randomUUID());const [consent,setConsent]=useState(false);const terminal=['completed','failed','busy','no-answer','canceled','cancelled'];useEffect(()=>{if(!call?.id||terminal.includes(call.status))return;let live=true;const poll=async()=>{try{const next=await api('/calls/'+call.id);if(live)setCall(next);}catch(e){if(live)setError(e.message);}};const timer=setInterval(poll,4000);return()=>{live=false;clearInterval(timer);};},[call?.id,call?.status]);async function initiate(e){e.preventDefault();setBusy(true);setError('');try{const result=await api('/calls',{method:'POST',headers:{'Idempotency-Key':idempotency.current},body:JSON.stringify({to:destination,name:lead?.name,leadId:lead?.id})});setCall(result);onRefresh();}catch(e){setError(e.message);}finally{setBusy(false);}}const statusText={'in-progress':'Exotel is connecting the call',initiating:'Requesting call',queued:'Call queued',completed:'Call ended',failed:'Call failed',busy:'Recipient busy','no-answer':'No answer',unknown:'Check Exotel for call status'};return <Modal title={lead?.id?`Call ${lead.name}`:'Place a real call'} subtitle="Exotel · verified phone-to-phone connection" onClose={onClose}><div className="call-recipient"><Avatar initials={lead?.initials||'OG'}/><h3>{lead?.name||'Demo recipient'}</h3><span className="badge">Real telephone call</span></div>{!call?<><div className="call-explainer"><span>1</span><p>Answer your agent phone <strong>{config?.agentPhone||'(not configured)'}</strong>.</p><span>2</span><p>Exotel rings your selected recipient and connects both phones.</p></div>{!config?.configured&&<div className="warning-panel"><Info size={18}/><div><strong>Complete calling setup first</strong><p>Missing: {config?.missing?.join(', ')||'server connection'}. API credentials alone are not enough. No simulated call will be placed.</p></div></div>}<form onSubmit={initiate}><label className="field-label" htmlFor="destination">Approved recipient number</label><input id="destination" type="tel" placeholder="+91 98765 43210" value={destination} onChange={e=>setDestination(e.target.value)} required disabled={!config?.configured}/><p className="fine-print">{config?.allowedNumbers?.length?'Approved recipients end in '+config.allowedNumbers.map(n=>n.id).join(', '):'A verified test recipient must be configured on the backend.'}</p><label className="consent-check"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/>I have permission to call this person now.</label><button className="primary full-width" disabled={busy||!config?.configured||!consent||!destination.trim()}><Phone size={16}/>{busy?'Requesting real call…':'Call now'}</button></form><p className="fine-print">Recording is off · 3-minute maximum · charges may use trial credits. Speak through your phone; laptop audio is not enabled.</p></>:<div className="active-call"><span className={`call-orbit ${terminal.includes(call.status)?'ended':''}`}><Phone size={27}/></span><h3>{statusText[call.status]||call.status}</h3><p>{terminal.includes(call.status)?'Final status reported by Exotel.':'Answer your phone first. This status comes from the provider, not a simulated timer.'}</p><dl><div><dt>Provider call ID</dt><dd>{call.providerId||'Not available'}</dd></div><div><dt>Provider status</dt><dd>{call.status}</dd></div><div><dt>Reported duration</dt><dd>{duration(call.duration)}</dd></div></dl>{call.syncError&&<p className="error">Status update delayed: {call.syncError}</p>}{!terminal.includes(call.status)&&<div className="info-strip"><Info size={15}/> Hang up on your phone to end the call. Closing this window does not end it.</div>}<button className="secondary full-width" onClick={onClose}>{terminal.includes(call.status)?'Done':'Close — keep call running'}</button></div>}{error&&<div role="alert" className="error-panel">{error}</div>}</Modal>;}
-function CallReview({call,onClose,notify,refresh}){const [outcome,setOutcome]=useState(call.outcome||'Callback'),[notes,setNotes]=useState(call.notes||''),[saving,setSaving]=useState(false);const save=async()=>{setSaving(true);try{await api('/calls/'+call.id+'/outcome',{method:'PATCH',body:JSON.stringify({outcome,notes})});notify('Call outcome saved.');refresh();onClose();}catch(e){notify(e.message);}finally{setSaving(false);}};return <Modal title={'Call with '+call.name} subtitle={`${call.when} · ${duration(call.duration)}`} onClose={onClose}><span className="badge">{call.sample?'Sample call review':'Real Exotel call'}</span>{call.sample?<><div className="review-score"><span>SOP adherence on this call</span><strong>{call.score?call.score+'%':'Not scored'}</strong></div><p>{call.summary}</p>{call.score&&['Opening & intent confirm','Needs discovery','Product pitch','EMI / financing mention','Warranty mention','Closing / callback booking'].map((s,i)=><div className="sop-row" key={s}><span className={i===4?'incomplete':''}>{i===4?<X size={14}/>:<Check size={14}/>}</span><div><strong>{s}</strong><p>{i===4?'No warranty mention in this sample conversation.':'Covered in the sample conversation.'}</p></div></div>)}</>:<><dl className="call-facts"><div><dt>Status</dt><dd>{call.status}</dd></div><div><dt>Provider call ID</dt><dd>{call.providerId||'—'}</dd></div></dl><p className="help-text">AI scoring and transcription are not enabled for real calls. Add a manual outcome below.</p><label className="field-label" htmlFor="outcome">Outcome</label><select id="outcome" value={outcome} onChange={e=>setOutcome(e.target.value)}>{['Converted','Callback','Not interested','Follow up'].map(o=><option key={o}>{o}</option>)}</select><label className="field-label" htmlFor="call-notes">Notes</label><textarea id="call-notes" value={notes} onChange={e=>setNotes(e.target.value)} rows={4} maxLength={2000}/><button className="primary full-width" onClick={save} disabled={saving}>{saving?'Saving…':'Save outcome'}</button></>}</Modal>;}
-function Practice({notify}){const [step,setStep]=useState(0),[recording,setRecording]=useState(false),[audio,setAudio]=useState(null),[error,setError]=useState('');const recorder=useRef(null),stream=useRef(null);useEffect(()=>()=>{stream.current?.getTracks().forEach(t=>t.stop());if(audio)URL.revokeObjectURL(audio);},[audio]);async function toggle(){if(recording){recorder.current.stop();stream.current.getTracks().forEach(t=>t.stop());setRecording(false);return;}try{setError('');stream.current=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];recorder.current=new MediaRecorder(stream.current);recorder.current.ondataavailable=e=>chunks.push(e.data);recorder.current.onstop=()=>setAudio(URL.createObjectURL(new Blob(chunks,{type:recorder.current.mimeType})));recorder.current.start();setRecording(true);}catch{setError('Microphone access was unavailable. You can still rehearse using the script.');}}return <div className="page-padding practice-page"><div className="page-heading"><div><h1><Headphones size={22}/> Practise a call</h1><p>A little preparation. A more confident conversation.</p></div><span className="badge subtle">Local rehearsal</span></div><div className="practice-layout"><div className="practice-steps">{practiceSteps.map((s,i)=><button className={step===i?'active':''} key={s.name} disabled={recording} onClick={()=>{setStep(i);setAudio(null);}}><span>{i+1}</span><div><strong>{s.name}</strong><small>{i===step?'Ready to practise':'Conversation skill'}</small></div><ChevronRight size={15}/></button>)}</div><section className="practice-card"><span className="eyebrow">Your net practise</span><h2>{practiceSteps[step].name}</h2><p>{practiceSteps[step].tip}</p><div className="script-box"><span>Example script</span><blockquote>“{practiceSteps[step].script}”</blockquote></div><h3>Record your rendition</h3><p className="help-text">Practice audio stays in this browser tab. It is not uploaded or scored by AI.</p><button className={recording?'record-button recording':'record-button'} onClick={toggle}>{recording?<Square size={18}/>:<Mic size={18}/>} {recording?'Stop recording':'Start recording'}</button>{recording&&<p className="recording-label">● Recording — try the script in your own words</p>}{audio&&<><audio controls src={audio}/><div className="practice-checklist"><h3>Listen back and check</h3>{['Did you sound clear and natural?','Did you ask permission or an open question?','Did you finish with a clear next step?'].map(q=><label key={q}><input type="checkbox"/>{q}</label>)}</div></>}{error&&<p role="alert" className="error">{error}</p>}</section></div></div>;}
-function AccessModal({onUnlock}){const [code,setCode]=useState(''),[error,setError]=useState('');return <div className="access-screen"><div className="access-card"><span className="logo-mark">OG</span><h1>Your call centre workspace</h1><p>Enter the demo access code supplied by the owner.</p><form onSubmit={async e=>{e.preventDefault();sessionStorage.setItem('demo-token',code);try{await api('/config');onUnlock();}catch(e){setError(e.message);}}}><label className="field-label" htmlFor="demo-code">Demo access code</label><input id="demo-code" type="password" value={code} onChange={e=>setCode(e.target.value)} autoComplete="current-password"/><button className="primary full-width">Open workspace <ChevronRight size={16}/></button>{error&&<p className="error">{error}</p>}</form></div></div>;}
-createRoot(document.getElementById('root')).render(<App/>);
+const headers = { "Content-Type": "application/json" };
+async function api(path, options = {}) {
+  const response = await fetch("/api" + path, {
+    ...options,
+    headers: {
+      ...headers,
+      "X-Demo-Token": sessionStorage.getItem("demo-token") || "",
+      ...(options.headers || {}),
+    },
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    const e = new Error(data.error || "Request failed");
+    e.status = response.status;
+    throw e;
+  }
+  return data;
+}
+function Avatar({ initials, small = false, tone = "green" }) {
+  return (
+    <span className={`avatar ${tone} ${small ? "small" : ""}`}>{initials}</span>
+  );
+}
+function Modal({ title, subtitle, children, onClose, wide = false }) {
+  const dialog = useRef(null);
+  useEffect(() => {
+    const previous = document.activeElement;
+    dialog.current?.focus();
+    document.body.style.overflow = "hidden";
+    function key(e) {
+      if (e.key === "Escape") onClose();
+      if (e.key === "Tab") {
+        const nodes = dialog.current?.querySelectorAll(
+          'button:not(:disabled),input,textarea,select,[tabindex="0"]',
+        );
+        if (!nodes?.length) return;
+        const first = nodes[0],
+          last = nodes[nodes.length - 1];
+        if (
+          e.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === dialog.current)
+        ) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+    document.addEventListener("keydown", key);
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", key);
+      previous?.focus();
+    };
+  }, [onClose]);
+  return (
+    <div
+      className="modal-scrim"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <section
+        ref={dialog}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className={`modal ${wide ? "wide" : ""}`}
+      >
+        <header className="modal-head">
+          <div>
+            <h2>{title}</h2>
+            {subtitle && <p>{subtitle}</p>}
+          </div>
+          <button
+            className="icon-button"
+            aria-label="Close dialog"
+            onClick={onClose}
+          >
+            <X size={18} />
+          </button>
+        </header>
+        <div className="modal-content">{children}</div>
+      </section>
+    </div>
+  );
+}
+function App() {
+  const [view, setView] = useState(location.hash.slice(1) || "dashboard"),
+    [navOpen, setNavOpen] = useState(false),
+    [modal, setModal] = useState(null),
+    [leadIndex, setLeadIndex] = useState(0),
+    [callLead, setCallLead] = useState(null),
+    [channel, setChannel] = useState(null),
+    [messages, setMessages] = useSaved("og-messages", {}),
+    [resolved, setResolved] = useSaved("og-resolved", {}),
+    [period, setPeriod] = useState("This Week"),
+    [config, setConfig] = useState(null),
+    [realCalls, setRealCalls] = useState([]),
+    [toast, setToast] = useState(""),
+    [access, setAccess] = useState(false);
+  const notify = (text) => {
+    setToast(text);
+    setTimeout(() => setToast(""), 4200);
+  };
+  const refresh = async () => {
+    try {
+      const [c, r] = await Promise.all([api("/config"), api("/calls")]);
+      setConfig(c);
+      setRealCalls(r);
+      setAccess(false);
+    } catch (e) {
+      if (e.status === 401) setAccess(true);
+      else
+        notify("Backend unavailable. Real calling is temporarily unavailable.");
+    }
+  };
+  useEffect(() => {
+    refresh();
+    const hash = () => setView(location.hash.slice(1) || "dashboard");
+    addEventListener("hashchange", hash);
+    return () => removeEventListener("hashchange", hash);
+  }, []);
+  function navigate(next) {
+    setView(next);
+    location.hash = next;
+    setNavOpen(false);
+    setChannel(null);
+  }
+  function openChannel(id) {
+    navigate("pulse");
+    setChannel(id);
+  }
+  function leadModal(i = 0) {
+    setLeadIndex(i);
+    setModal("leads");
+  }
+  function startCall(lead) {
+    setCallLead(lead || { name: "Demo recipient" });
+    setModal("call");
+  }
+  const unresolved = tasksSeed.filter((t) => !resolved[t.id]);
+  const resolveTask = (id, text) => {
+    setResolved({ ...resolved, [id]: text });
+    appendMessage(tasksSeed.find((t) => t.id === id).channel, text);
+    notify("Response saved. Task marked done.");
+  };
+  function appendMessage(id, text) {
+    const current = messages[id] || initialMessages(id);
+    setMessages((prev) => ({
+      ...prev,
+      [id]: [
+        ...(prev[id] || current),
+        {
+          id: crypto.randomUUID(),
+          sender: "You",
+          initials: "AR",
+          own: true,
+          text,
+          time: new Date().toLocaleTimeString("en-IN", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }),
+        },
+      ],
+    }));
+  }
+  const sidebar = (
+    <>
+      <a
+        className="sidebar-brand"
+        href="#dashboard"
+        onClick={() => navigate("dashboard")}
+      >
+        On-Ground<span>.ai</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <Nav
+          icon={LayoutDashboard}
+          label="Dashboard"
+          active={view === "dashboard"}
+          onClick={() => navigate("dashboard")}
+        />
+        <div className="nav-parent">
+          <Icon as={Phone} />
+          <span>Plan</span>
+          <ChevronDown size={13} />
+        </div>
+        <div className="subnav">
+          {[
+            ["outgoing", "Calls to make", PhoneOutgoing],
+            ["incoming", "Incoming", PhoneIncoming],
+            ["recent", "Recent", History],
+            ["practice", "Practise a call", Headphones],
+          ].map(([id, label, icon]) => (
+            <Nav
+              key={id}
+              icon={icon}
+              label={label}
+              active={view === id}
+              onClick={() => navigate(id)}
+            />
+          ))}
+        </div>
+        <Nav
+          icon={CalendarDays}
+          label="Calendar"
+          active={view === "calendar"}
+          onClick={() => navigate("calendar")}
+        />
+        <Nav
+          icon={MessagesSquare}
+          label="Pulse"
+          active={view === "pulse"}
+          onClick={() => navigate("pulse")}
+        />
+      </nav>
+      <div className="sidebar-bottom">
+        <div className="workspace-symbol">TSC</div>
+        <div>
+          <strong>The Sleep Company</strong>
+          <small>Koramangala workspace</small>
+        </div>
+      </div>
+    </>
+  );
+  return (
+    <div className="app">
+      <aside className={navOpen ? "sidebar mobile-open" : "sidebar"}>
+        {sidebar}
+      </aside>
+      {navOpen && (
+        <button
+          className="mobile-scrim"
+          aria-label="Close navigation"
+          onClick={() => setNavOpen(false)}
+        />
+      )}
+      <div className="workspace">
+        <header className="topbar">
+          <div className="topbar-brand">
+            <button
+              className="icon-button mobile-menu"
+              aria-label="Open navigation"
+              onClick={() => setNavOpen(true)}
+            >
+              <Menu size={19} />
+            </button>
+            <span className="logo-mark">OG</span>
+            <span>On-Ground.ai</span>
+            <span className="top-divider" />
+            <span className="workspace-label">Call Centre</span>
+          </div>
+          <div className="topbar-actions">
+            <button
+              className="notification"
+              aria-label="Notifications"
+              onClick={() => setModal("notifications")}
+            >
+              <Bell size={17} />
+              <i />
+            </button>
+            <button
+              className="score-pill"
+              onClick={() => setModal("score")}
+              aria-label="Your OG Score: 76"
+            >
+              76
+            </button>
+            <button className="rank-pill" onClick={() => setModal("score")}>
+              <Trophy size={12} /> #3
+            </button>
+            <button
+              className="profile-button"
+              aria-label="Agent profile and calling setup"
+              onClick={() => setModal("settings")}
+            >
+              AR
+            </button>
+          </div>
+        </header>
+        <main>
+          {view === "dashboard" ? (
+            <Dashboard
+              period={period}
+              setPeriod={setPeriod}
+              openLeads={leadModal}
+              openChannel={openChannel}
+              navigate={navigate}
+              unresolved={unresolved}
+              onScore={() => setModal("score")}
+            />
+          ) : ["outgoing", "incoming", "recent"].includes(view) ? (
+            <Plan
+              view={view}
+              openCall={startCall}
+              onReview={(call) => setModal({ kind: "review", call })}
+              realCalls={realCalls}
+              openLeads={leadModal}
+            />
+          ) : view === "calendar" ? (
+            <Calendar />
+          ) : view === "pulse" ? (
+            <Pulse
+              channel={channel}
+              setChannel={setChannel}
+              unresolved={unresolved}
+              resolveTask={resolveTask}
+              messages={messages}
+              appendMessage={appendMessage}
+              openLeads={leadModal}
+            />
+          ) : view === "practice" ? (
+            <Practice notify={notify} />
+          ) : (
+            <div className="empty">
+              <h2>Page not found</h2>
+              <button onClick={() => navigate("dashboard")}>
+                Go to dashboard
+              </button>
+            </div>
+          )}
+        </main>
+        <footer className="app-footer">
+          <span>On-Ground.ai · Call Centre workspace</span>
+          <span className="seed-label">
+            <span /> Sample business data · Real Exotel calling
+          </span>
+        </footer>
+        {!(view === "pulse" && channel) && (
+          <button
+            className="floating-call"
+            onClick={() => startCall(null)}
+            aria-label="Place a real telephone call"
+          >
+            <Phone size={20} />
+          </button>
+        )}
+      </div>
+      {modal === "leads" && (
+        <LeadsModal
+          index={leadIndex}
+          setIndex={setLeadIndex}
+          onClose={() => setModal(null)}
+          openCall={startCall}
+        />
+      )}
+      {modal === "call" && (
+        <CallModal
+          lead={callLead}
+          config={config}
+          onClose={() => {
+            setModal(null);
+            refresh();
+          }}
+          onRefresh={refresh}
+          notify={notify}
+        />
+      )}
+      {modal === "settings" && (
+        <Modal
+          title="Your workspace"
+          subtitle="Agent profile & calling setup"
+          onClose={() => setModal(null)}
+        >
+          <div className="profile-card">
+            <Avatar initials="AR" />
+            <div>
+              <h3>{agent.name}</h3>
+              <p>
+                {agent.brand} · {agent.store}
+              </p>
+              <span className="badge">Call Centre Staff · M0</span>
+            </div>
+          </div>
+          <h3>Real calling · Exotel</h3>
+          <p className="help-text">
+            This version connects your verified agent phone to an approved
+            recipient. Answer your phone first, then Exotel rings the recipient.
+          </p>
+          <div className="status-panel">
+            <ShieldCheck size={19} />
+            <div>
+              <strong>
+                {config?.configured
+                  ? "Ready to make a real call"
+                  : "Calling setup needs attention"}
+              </strong>
+              <p>
+                {config?.configured
+                  ? `Agent: ${config.agentPhone}`
+                  : `Missing: ${config?.missing?.join(", ") || "backend connection"}`}
+              </p>
+            </div>
+          </div>
+          <p className="help-text">
+            Browser microphone calling is pending Exotel WebRTC access.
+            Recording is off. Calls are limited to three minutes.
+          </p>
+          <button className="primary" onClick={() => startCall(null)}>
+            <Phone size={15} /> Open calling
+          </button>
+        </Modal>
+      )}
+      {modal === "notifications" && (
+        <Modal
+          title="Notifications"
+          subtitle="Your shift at a glance · sample updates"
+          onClose={() => setModal(null)}
+        >
+          {unresolved.map((t) => (
+            <button
+              className="notification-row"
+              key={t.id}
+              onClick={() => {
+                setModal(null);
+                openChannel(t.channel);
+              }}
+            >
+              <span className="notice-icon">
+                <Pin size={17} />
+              </span>
+              <div>
+                <strong>{t.title}</strong>
+                <p>{t.context}</p>
+              </div>
+              <ChevronRight size={16} />
+            </button>
+          ))}
+          {!unresolved.length && (
+            <div className="empty">
+              <CheckCircle2 />
+              All caught up
+            </div>
+          )}
+        </Modal>
+      )}
+      {modal === "score" && (
+        <Modal
+          title="Your OG Score™"
+          subtitle="This week · sample coaching insights"
+          onClose={() => setModal(null)}
+        >
+          <div className="score-large">
+            76<span>/100</span>
+          </div>
+          <span className="positive">↑ 13 points this period</span>
+          <p>
+            You’re in the top 28% of your store. Keep building on your rapport
+            and product knowledge.
+          </p>
+          {[
+            ["Opening", 88],
+            ["Discovery", 81],
+            ["Product knowledge", 84],
+            ["Objections", 65],
+            ["Closing", 58],
+          ].map(([name, n]) => (
+            <div className="skill" key={name}>
+              <span>{name}</span>
+              <strong>{n}</strong>
+              <div className="track">
+                <i style={{ width: n + "%" }} />
+              </div>
+            </div>
+          ))}
+          <button
+            className="primary"
+            onClick={() => {
+              setModal(null);
+              navigate("practice");
+            }}
+          >
+            Practise your next conversation <ChevronRight size={15} />
+          </button>
+        </Modal>
+      )}
+      {modal?.kind === "review" && (
+        <CallReview
+          call={modal.call}
+          onClose={() => setModal(null)}
+          notify={notify}
+          refresh={refresh}
+        />
+      )}
+      {access && <AccessModal onUnlock={refresh} />}
+      {toast && (
+        <div role="status" className="toast">
+          <CheckCircle2 size={17} />
+          {toast}
+        </div>
+      )}
+    </div>
+  );
+}
+function Nav({ icon, label, active, onClick }) {
+  return (
+    <button
+      className={`nav-item ${active ? "active" : ""}`}
+      onClick={onClick}
+      aria-current={active ? "page" : undefined}
+    >
+      <span className="nav-icon">
+        <Icon as={icon} />
+      </span>
+      <span>{label}</span>
+    </button>
+  );
+}
+function SectionLabel({ children, action, onClick }) {
+  return (
+    <div className="section-label">
+      <span>{children}</span>
+      {action && (
+        <button onClick={onClick}>
+          {action}
+          <ChevronRight size={12} />
+        </button>
+      )}
+    </div>
+  );
+}
+function Dashboard({
+  period,
+  setPeriod,
+  openLeads,
+  openChannel,
+  navigate,
+  unresolved,
+  onScore,
+}) {
+  return (
+    <div className="dashboard">
+      <section className="dashboard-hero">
+        <div className="greeting">
+          <div>
+            <p>
+              Good afternoon <span>👋</span>
+            </p>
+            <h1>{agent.name}</h1>
+            <span>{agent.brand} · Call Centre</span>
+          </div>
+          <div className="hero-controls">
+            <span className="on-queue">
+              <i /> On Queue
+            </span>
+            <label className="period">
+              <CalendarDays size={13} />
+              <select
+                aria-label="Dashboard date range"
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+              >
+                {["Today", "This Week", "This Month", "Last 30 Days"].map(
+                  (v) => (
+                    <option key={v}>{v}</option>
+                  ),
+                )}
+              </select>
+            </label>
+          </div>
+        </div>
+        <div className="kpi-grid">
+          {[
+            { n: "76", label: "OG Score™", change: "↑ 13", icon: Target },
+            {
+              n: "4m 12s",
+              label: "Avg handle time",
+              change: "↓ 8%",
+              icon: Clock,
+            },
+            {
+              n: "94%",
+              label: "CSAT today",
+              change: "↑ 2pt",
+              icon: TrendingUp,
+            },
+            { n: "2", label: "In queue", change: "● live", icon: Headphones },
+          ].map((k, i) => (
+            <button
+              key={k.label}
+              className="kpi"
+              onClick={() =>
+                i === 0 ? onScore() : navigate(i === 3 ? "incoming" : "recent")
+              }
+            >
+              <div className="kpi-top">
+                <span>{k.label}</span>
+                <Icon as={k.icon} />
+              </div>
+              <div className="kpi-value">
+                {k.n}
+                <small>{k.change}</small>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+      <div className="dashboard-body">
+        <div className="dashboard-columns">
+          <div>
+            <section className="progress-card">
+              <SectionLabel>
+                My progress ·{" "}
+                {period === "Today" ? "today" : period.toLowerCase()}
+              </SectionLabel>
+              <div className="progress-grid">
+                <button onClick={() => openLeads(0)}>
+                  <span className="metric-icon">
+                    <Users size={17} />
+                  </span>
+                  <div>
+                    <strong>
+                      3 <small>↑ +1</small>
+                    </strong>
+                    <span>Leads Created</span>
+                  </div>
+                </button>
+                <button onClick={() => navigate("recent")}>
+                  <span className="metric-icon">
+                    <PhoneOutgoing size={17} />
+                  </span>
+                  <div>
+                    <strong>
+                      2 <small>↑ +2</small>
+                    </strong>
+                    <span>Leads Called</span>
+                  </div>
+                </button>
+              </div>
+            </section>
+            <SectionLabel
+              action="Open planner"
+              onClick={() => navigate("incoming")}
+            >
+              Who's waiting
+            </SectionLabel>
+            <div className="waiting-list">
+              {[
+                {
+                  name: "Priya Iyer",
+                  text: "Likely billing dispute — flagged before",
+                  time: "4m 20s",
+                  initials: "PI",
+                },
+                {
+                  name: "Suresh Nair",
+                  text: "Plan upgrade enquiry",
+                  time: "1m 50s",
+                  initials: "SN",
+                },
+              ].map((p, i) => (
+                <button
+                  className="waiting-row"
+                  key={p.name}
+                  onClick={() => navigate("incoming")}
+                >
+                  <span className="queue-icon">
+                    <Headphones size={16} />
+                  </span>
+                  <div>
+                    <strong>{p.name}</strong>
+                    <small>{p.text}</small>
+                  </div>
+                  <span className={`time-badge ${i ? "yellow" : "red"}`}>
+                    {p.time}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="dashboard-right">
+            <section className="earnings-card">
+              <div className="earnings-title">
+                <span>💰 My earnings this month</span>
+                <small>₹800 to ₹6,000 slab</small>
+              </div>
+              <div className="earnings-value">
+                ₹5,200 <span>₹1,700 from coached moves</span>
+              </div>
+              <div className="track">
+                <i style={{ width: "86.6%" }} />
+              </div>
+              <div className="earnings-caption">
+                <span>Looking good, Arvind</span>
+                <span>₹800 to next slab</span>
+              </div>
+            </section>
+            <section className="tasks-card">
+              <div className="tasks-header">
+                <span>
+                  <Target size={14} /> My Tasks
+                </span>
+                <span className="count">{unresolved.length}</span>
+              </div>
+              {unresolved.map((t, i) => (
+                <button
+                  key={t.id}
+                  className="task-row"
+                  onClick={() =>
+                    t.id === "hot" ? openLeads(0) : openChannel(t.channel)
+                  }
+                >
+                  <span className="task-icon">
+                    <Icon
+                      as={
+                        { callback: Phone, hot: Users, outcome: History }[t.id]
+                      }
+                    />
+                  </span>
+                  <div>
+                    <strong>
+                      {t.id === "callback"
+                        ? "2 callbacks"
+                        : t.id === "hot"
+                          ? "2 hot leads"
+                          : "1 outcome"}
+                    </strong>
+                    <small>
+                      {t.id === "callback"
+                        ? "next 4:30pm"
+                        : t.id === "hot"
+                          ? "untouched 24h"
+                          : "to log"}
+                    </small>
+                  </div>
+                  <ChevronRight size={14} />
+                </button>
+              ))}
+              {!unresolved.length && (
+                <p className="caught-up">
+                  <CheckCircle2 size={17} /> All caught up. Nice work!
+                </p>
+              )}
+            </section>
+          </div>
+        </div>
+        <BarChart
+          title="Calls handled · last 7 days"
+          values={[18, 22, 15, 26, 20, 12, 14]}
+          color="green"
+        />
+        <BarChart
+          title="CSAT trend · last 7 days"
+          values={[88, 90, 85, 92, 89, 91, 94]}
+          percent
+          color="blue"
+        />
+        <div className="dashboard-note">
+          <ShieldCheck size={13} />
+          <span>
+            Your next great conversation starts with a little preparation.
+          </span>
+          <button onClick={() => navigate("practice")}>
+            Practise a call <ChevronRight size={12} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+function BarChart({ title, values, percent, color }) {
+  return (
+    <section className="chart-section">
+      <SectionLabel>{title}</SectionLabel>
+      <div
+        className={`bar-chart ${color}`}
+        role="img"
+        aria-label={title + ": " + values.join(", ")}
+      >
+        {values.map((v, i) => (
+          <div className="bar-column" key={i}>
+            <span>
+              {v}
+              {percent ? "%" : ""}
+            </span>
+            <div className="bar-track">
+              <div
+                className="bar"
+                style={{ height: (percent ? v : (100 * v) / 28) + "%" }}
+              />
+            </div>
+            <small>
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Today"][i]}
+            </small>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+function Plan({ view, openCall, onReview, realCalls, openLeads }) {
+  const [page, setPage] = useState(0),
+    [expanded, setExpanded] = useState(null),
+    [filter, setFilter] = useState("all");
+  const totalPages = Math.ceil(leads.length / 2);
+  const recent = [
+    ...realCalls.map((c) => ({
+      ...c,
+      when: new Date(c.createdAt).toLocaleString("en-IN"),
+      type: "outgoing",
+    })),
+    ...recentSeed,
+  ].filter((c) => filter === "all" || c.type === filter);
+  return (
+    <div className="plan-page">
+      <div className="page-ribbon">
+        <div>
+          <span>Today's calling plan</span>
+          <h1>Planner</h1>
+        </div>
+        <span className="ribbon-date">
+          {new Date().toLocaleDateString("en-IN", {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+          })}
+        </span>
+      </div>
+      <div className="page-padding">
+        <div className="page-heading">
+          <div>
+            <h2>
+              {view === "outgoing"
+                ? "Planned outgoing calls"
+                : view === "incoming"
+                  ? "Missed calls"
+                  : "Recent calls"}
+            </h2>
+            <p>
+              {view === "outgoing"
+                ? "Ranked by lead attractiveness score — tap a lead for the full picture"
+                : view === "incoming"
+                  ? "Ranked by expected value — call the highest-value leads back first"
+                  : "Tap a call to review its details and SOP"}
+            </p>
+          </div>
+          <span className="badge subtle">
+            {view === "outgoing"
+              ? leads.length + " leads"
+              : view === "incoming"
+                ? "Priority order"
+                : "Sample + live history"}
+          </span>
+        </div>
+        {view === "outgoing" && (
+          <>
+            <div className="call-list">
+              {leads.slice(page * 2, page * 2 + 2).map((l) => (
+                <section
+                  key={l.id}
+                  className={`lead-row-card ${expanded === l.id ? "expanded" : ""}`}
+                >
+                  <button
+                    className="lead-row"
+                    onClick={() => setExpanded(expanded === l.id ? null : l.id)}
+                    aria-expanded={expanded === l.id}
+                  >
+                    <Avatar initials={l.initials} />
+                    <div className="lead-row-name">
+                      <strong>{l.name}</strong>
+                      <small>
+                        Interested: {l.product} · {money(l.value)}
+                      </small>
+                    </div>
+                    <div className="lead-score">
+                      <strong>{l.score}</strong>
+                      <small>Score</small>
+                    </div>
+                    <ChevronDown
+                      className={expanded === l.id ? "rotate" : ""}
+                      size={15}
+                    />
+                  </button>
+                  {expanded === l.id && (
+                    <div className="lead-expanded">
+                      <div>
+                        <SectionLabel>Story so far</SectionLabel>
+                        <p>{l.story}</p>
+                      </div>
+                      <div className="detail-grid">
+                        <div>
+                          <SectionLabel>Preferred product</SectionLabel>
+                          <p>{l.product}</p>
+                        </div>
+                        <div>
+                          <SectionLabel>Cross-sell</SectionLabel>
+                          <p>{l.crossSell}</p>
+                        </div>
+                      </div>
+                      <SectionLabel>EMI / financing</SectionLabel>
+                      <p>{l.finance}</p>
+                      <div className="button-row">
+                        <button className="primary" onClick={() => openCall(l)}>
+                          <Phone size={14} /> Place call
+                        </button>
+                        <button
+                          className="secondary"
+                          onClick={() => openLeads(leads.indexOf(l))}
+                        >
+                          View full lead <ChevronRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </section>
+              ))}
+            </div>
+            <div className="pager">
+              <button
+                className="icon-button"
+                disabled={page === 0}
+                aria-label="Previous page"
+                onClick={() => {
+                  setPage(page - 1);
+                  setExpanded(null);
+                }}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span>
+                Page {page + 1} of {totalPages}
+              </span>
+              <button
+                className="icon-button"
+                disabled={page === totalPages - 1}
+                aria-label="Next page"
+                onClick={() => {
+                  setPage(page + 1);
+                  setExpanded(null);
+                }}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </>
+        )}
+        {view === "incoming" && (
+          <>
+            <div className="missed-summary">
+              <div>
+                <strong>5</strong>
+                <span>Missed today</span>
+              </div>
+              <div>
+                <strong>{money(81860)}</strong>
+                <span>Expected value at stake</span>
+              </div>
+            </div>
+            <div className="call-list">
+              {missed.map((c, i) => {
+                const l = leads.find((l) => l.id === c.leadId);
+                return (
+                  <div className="incoming-row" key={i}>
+                    <span className="call-type missed">
+                      <PhoneMissed size={17} />
+                    </span>
+                    <div className="lead-row-name">
+                      <strong>{l?.name || c.name}</strong>
+                      <small>
+                        Missed {c.time} · {c.context}
+                      </small>
+                    </div>
+                    <div className="callback-side">
+                      <strong>
+                        {l ? money(l.value) + " expected" : "New contact"}
+                      </strong>
+                      <button
+                        className="call-back"
+                        onClick={() =>
+                          openCall(l || { name: "Unknown caller" })
+                        }
+                      >
+                        <Phone size={12} /> Call back
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+        {view === "recent" && (
+          <>
+            <div className="filter-tabs" aria-label="Filter call history">
+              {["all", "incoming", "outgoing", "missed"].map((f) => (
+                <button
+                  key={f}
+                  className={filter === f ? "selected" : ""}
+                  onClick={() => setFilter(f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div className="call-list">
+              {recent.map((c) => (
+                <button
+                  className="recent-row"
+                  onClick={() => onReview(c)}
+                  key={c.id}
+                >
+                  <span className={"call-type " + c.type}>
+                    <Icon
+                      as={
+                        c.type === "missed"
+                          ? PhoneMissed
+                          : c.type === "incoming"
+                            ? PhoneIncoming
+                            : PhoneOutgoing
+                      }
+                    />
+                  </span>
+                  <div className="lead-row-name">
+                    <strong>
+                      {c.name}{" "}
+                      {!c.sample && (
+                        <span className="real-badge">REAL CALL</span>
+                      )}
+                    </strong>
+                    <small>
+                      {c.when} · {duration(c.duration)}
+                      {c.status ? " · " + c.status : ""}
+                    </small>
+                  </div>
+                  <ChevronRight size={15} />
+                </button>
+              ))}
+            </div>
+            {!recent.length && (
+              <div className="empty">No calls match this filter.</div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+function LeadsModal({ index, setIndex, onClose, openCall }) {
+  const l = leads[index];
+  return (
+    <Modal
+      title="Leads"
+      subtitle={`Lead ${index + 1} of ${leads.length} · SLA to close`}
+      onClose={onClose}
+    >
+      <div className="lead-pager">
+        <div className="pager-dots">
+          {leads.map((_, i) => (
+            <span key={i} className={index === i ? "selected" : ""} />
+          ))}
+        </div>
+        <div>
+          <button
+            aria-label="Previous lead"
+            disabled={index === 0}
+            className="icon-button"
+            onClick={() => setIndex(index - 1)}
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            aria-label="Next lead"
+            disabled={index === leads.length - 1}
+            className="icon-button"
+            onClick={() => setIndex(index + 1)}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+      <div className="lead-status">
+        ● {l.status}
+        <span>{l.sla}</span>
+      </div>
+      <div className="profile-card">
+        <Avatar initials={l.initials} />
+        <div>
+          <h3>{l.name}</h3>
+          <p>
+            {l.product} · {money(l.value)}
+          </p>
+        </div>
+      </div>
+      <p className="lead-note">Quote to be given to customer</p>
+      {[
+        ["ICP fit", l.icp],
+        ["Lead intent score", l.intent],
+      ].map(([label, n]) => (
+        <div className="score-line" key={label}>
+          <div>
+            <Target size={13} />
+            <strong>{label}</strong>
+            <span>{n}%</span>
+          </div>
+          <div className="track">
+            <i style={{ width: n + "%" }} />
+          </div>
+        </div>
+      ))}
+      <details className="lead-details">
+        <summary>ICP fit breakdown</summary>
+        {[
+          ["Budget fit", 80],
+          ["Need match", 87],
+          ["Decision stage", 65],
+        ].map(([label, n]) => (
+          <div className="skill" key={label}>
+            <span>{label}</span>
+            <strong>{n}%</strong>
+            <div className="track">
+              <i style={{ width: n + "%" }} />
+            </div>
+          </div>
+        ))}
+      </details>
+      <details className="lead-details">
+        <summary>How we got here</summary>
+        <p>{l.story}</p>
+      </details>
+      <details open className="lead-details buying-signals">
+        <summary>Where we picked up signals</summary>
+        {l.signals.map((s, i) => (
+          <div className="signal" key={s}>
+            <span>
+              {
+                ["Financing related", "Quotation demanded", "Warranty related"][
+                  i
+                ]
+              }
+            </span>
+            <p>{s}</p>
+          </div>
+        ))}
+      </details>
+      <div className="lead-sla">
+        <Clock size={14} />
+        <span>
+          Cumulative missed: <strong>2</strong> · expired without close, visible
+          to manager
+        </span>
+      </div>
+      <button className="primary full-width" onClick={() => openCall(l)}>
+        <Phone size={15} /> On-ground Call
+      </button>
+      <p className="fine-print">
+        Illustrative lead. Calling uses your approved demo recipient.
+      </p>
+    </Modal>
+  );
+}
+function Calendar() {
+  const today = new Date(),
+    [month, setMonth] = useState(
+      new Date(today.getFullYear(), today.getMonth(), 1),
+    ),
+    [selected, setSelected] = useState(today.getDate()),
+    [event, setEvent] = useState(null);
+  const year = month.getFullYear(),
+    m = month.getMonth(),
+    days = new Date(year, m + 1, 0).getDate(),
+    offset = new Date(year, m, 1).getDay();
+  const events = [
+    {
+      day: Math.min(today.getDate() + 1, days),
+      time: "11:00 AM",
+      title: "SOP coaching session",
+      person: "Sunita Rao · Manager",
+      type: "Coaching",
+    },
+    {
+      day: Math.min(today.getDate() + 3, days),
+      time: "2:30 PM",
+      title: "Warranty pitch refresher",
+      person: "L&D team · learning session",
+      type: "Learning",
+    },
+    {
+      day: Math.min(today.getDate() + 5, days),
+      time: "10:00 AM",
+      title: "Weekly team huddle",
+      person: "Call Centre team",
+      type: "Team meeting",
+    },
+    {
+      day: Math.min(today.getDate(), days),
+      time: "4:30 PM",
+      title: "Customer callback",
+      person: "Priya Iyer · follow-up",
+      type: "Callback",
+    },
+  ];
+  const move = (delta) => {
+    setMonth(new Date(year, m + delta, 1));
+    setSelected(1);
+  };
+  return (
+    <div className="page-padding calendar-page">
+      <div className="page-heading">
+        <div>
+          <h1>
+            <CalendarDays size={21} /> Calendar
+          </h1>
+          <p>Store visits, coaching sessions, and your next conversation</p>
+        </div>
+        <span className="badge subtle">Sample calendar</span>
+      </div>
+      <div className="info-strip">
+        <Info size={15} /> Your schedule in one place. External mailbox sync is
+        not connected.
+      </div>
+      <div className="calendar-layout">
+        <section className="calendar-card">
+          <div className="calendar-toolbar">
+            <button
+              aria-label="Previous month"
+              className="icon-button"
+              onClick={() => move(-1)}
+            >
+              <ChevronLeft size={17} />
+            </button>
+            <h2>
+              {month.toLocaleDateString("en-IN", {
+                month: "long",
+                year: "numeric",
+              })}
+            </h2>
+            <button
+              className="secondary today-button"
+              onClick={() => {
+                setMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                setSelected(today.getDate());
+              }}
+            >
+              Today
+            </button>
+            <button
+              aria-label="Next month"
+              className="icon-button"
+              onClick={() => move(1)}
+            >
+              <ChevronRight size={17} />
+            </button>
+          </div>
+          <div className="calendar-grid weekdays">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              <span key={d}>{d}</span>
+            ))}
+          </div>
+          <div className="calendar-grid dates">
+            {Array.from({ length: offset }, (_, i) => (
+              <span key={"blank" + i} className="blank" />
+            ))}
+            {Array.from({ length: days }, (_, i) => {
+              const day = i + 1,
+                isToday =
+                  day === today.getDate() &&
+                  m === today.getMonth() &&
+                  year === today.getFullYear();
+              return (
+                <button
+                  aria-label={`${day} ${month.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}`}
+                  key={day}
+                  className={`${selected === day ? "selected" : ""} ${isToday ? "is-today" : ""}`}
+                  onClick={() => setSelected(day)}
+                >
+                  <span>{day}</span>
+                  {events.some((e) => e.day === day) && <i />}
+                  {isToday && <small>Today</small>}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+        <section className="calendar-events">
+          <SectionLabel>
+            {month.toLocaleDateString("en-IN", { month: "short" })} {selected} ·
+            agenda
+          </SectionLabel>
+          {events
+            .filter((e) => e.day === selected)
+            .map((e, i) => (
+              <button
+                className="event-card"
+                key={i}
+                onClick={() => setEvent(e)}
+              >
+                <span>{e.time}</span>
+                <h3>{e.title}</h3>
+                <p>{e.person}</p>
+                <span className="badge">{e.type}</span>
+              </button>
+            ))}
+          {!events.some((e) => e.day === selected) && (
+            <p className="help-text">No events on this date.</p>
+          )}
+          <SectionLabel>Upcoming this month</SectionLabel>
+          {events
+            .filter((e) => e.day !== selected)
+            .map((e, i) => (
+              <button
+                className="agenda-row"
+                key={i}
+                onClick={() => {
+                  setSelected(e.day);
+                  setEvent(e);
+                }}
+              >
+                <div className="agenda-date">
+                  <strong>{e.day}</strong>
+                  <span>
+                    {month.toLocaleDateString("en-IN", { month: "short" })}
+                  </span>
+                </div>
+                <div>
+                  <strong>{e.title}</strong>
+                  <small>
+                    {e.time} · {e.person}
+                  </small>
+                </div>
+                <ChevronRight size={14} />
+              </button>
+            ))}
+        </section>
+      </div>
+      {event && (
+        <Modal
+          title={event.title}
+          subtitle={`${event.day} ${month.toLocaleDateString("en-IN", { month: "long", year: "numeric" })} · ${event.time}`}
+          onClose={() => setEvent(null)}
+        >
+          <div className="status-panel">
+            <CalendarDays size={20} />
+            <div>
+              <strong>{event.type}</strong>
+              <p>{event.person}</p>
+            </div>
+          </div>
+          <p>
+            This sample event helps you prepare for your shift. No invitation
+            has been sent to an external calendar.
+          </p>
+          <button className="primary" onClick={() => setEvent(null)}>
+            Done
+          </button>
+        </Modal>
+      )}
+    </div>
+  );
+}
+function Pulse({
+  channel,
+  setChannel,
+  unresolved,
+  resolveTask,
+  messages,
+  appendMessage,
+  openLeads,
+}) {
+  const [draft, setDraft] = useState(""),
+    [search, setSearch] = useState(""),
+    [replies, setReplies] = useState({});
+  const bottom = useRef(null);
+  const chat = messages[channel] || initialMessages(channel);
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ behavior: "smooth" });
+  }, [channel, messages]);
+  const send = (e) => {
+    e.preventDefault();
+    if (draft.trim()) {
+      appendMessage(channel, draft.trim());
+      setDraft("");
+    }
+  };
+  if (channel)
+    return (
+      <div className="channel-page">
+        <header className="channel-header">
+          <button
+            className="icon-button"
+            aria-label="Back to Pulse"
+            onClick={() => setChannel(null)}
+          >
+            <ArrowLeft size={19} />
+          </button>
+          <div>
+            <h1>
+              {channel === "AvaniBot" ? (
+                <Sparkles size={18} />
+              ) : (
+                <Hash size={18} />
+              )}{" "}
+              {channel}
+            </h1>
+            <p>
+              {channel === "AvaniBot"
+                ? "Your shift companion · sample brief"
+                : "The Sleep Company · team channel"}
+            </p>
+          </div>
+          <span className="channel-members">
+            <Users size={14} /> 6 members
+          </span>
+        </header>
+        {unresolved
+          .filter((t) => t.channel === channel)
+          .map((t) => (
+            <section className="pinned-card" key={t.id}>
+              <div className="pin-label">
+                <Pin size={12} /> Needs your input <span>pinned</span>
+              </div>
+              <h3>{t.title}</h3>
+              <p>{t.context}</p>
+              <div className="pin-actions">
+                {t.choices.map((c) => (
+                  <button key={c} onClick={() => resolveTask(t.id, c)}>
+                    {c}
+                  </button>
+                ))}
+                {t.id === "hot" && (
+                  <button onClick={() => openLeads(0)}>Review leads</button>
+                )}
+              </div>
+              <form
+                className="reply-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (replies[t.id]?.trim()) {
+                    resolveTask(t.id, replies[t.id].trim());
+                    setReplies({ ...replies, [t.id]: "" });
+                  }
+                }}
+              >
+                <input
+                  aria-label={"Reply to " + t.title}
+                  placeholder="Or type your answer…"
+                  value={replies[t.id] || ""}
+                  onChange={(e) =>
+                    setReplies({ ...replies, [t.id]: e.target.value })
+                  }
+                />
+                <button
+                  aria-label={"Send answer to " + t.title}
+                  disabled={!replies[t.id]?.trim()}
+                >
+                  <Send size={14} />
+                </button>
+              </form>
+            </section>
+          ))}
+        <div className="chat-history">
+          <div className="chat-day">Today · {channel}</div>
+          {chat.map((msg) => (
+            <div className={`chat-row ${msg.own ? "own" : ""}`} key={msg.id}>
+              <Avatar
+                initials={msg.initials}
+                small
+                tone={msg.own ? "green" : "gold"}
+              />
+              <div>
+                <div className="message-meta">
+                  {msg.sender}
+                  <time>{msg.time}</time>
+                </div>
+                <div className="chat-bubble">{msg.text}</div>
+              </div>
+            </div>
+          ))}
+          <div ref={bottom} />
+        </div>
+        <form className="chat-composer" onSubmit={send}>
+          <input
+            aria-label={`Message ${channel}`}
+            placeholder={`Message #${channel}…`}
+            value={draft}
+            maxLength={2000}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <button
+            type="button"
+            className="emoji-button"
+            aria-label="Add smile emoji"
+            onClick={() => setDraft(draft + " 😊")}
+          >
+            😊
+          </button>
+          <button
+            className="send-button"
+            aria-label="Send message"
+            disabled={!draft.trim()}
+          >
+            <Send size={17} />
+          </button>
+        </form>
+      </div>
+    );
+  return (
+    <div className="pulse-page">
+      <div className="pulse-title">
+        <div className="pulse-title-icon">
+          <MessagesSquare size={21} />
+        </div>
+        <div>
+          <h1>Pulse</h1>
+          <p>The Sleep Company · Koramangala</p>
+        </div>
+        <span className="badge">Your team, connected</span>
+      </div>
+      <div className="pulse-search">
+        <Search size={16} />
+        <input
+          aria-label="Search Pulse channels"
+          placeholder="Ask AvaniBot or search Pulse…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <span>{unresolved.length} needs input</span>
+      </div>
+      <section className="avani-card">
+        <div className="avani-icon">✦</div>
+        <div>
+          <h2>
+            AvaniBot <span>Always on</span>
+          </h2>
+          <p>Daily briefs, action items, and a little help moving forward.</p>
+          <div className="button-row">
+            <button onClick={() => setChannel("AvaniBot")}>
+              <Sparkles size={13} /> Daily Brief
+            </button>
+            <button onClick={() => setChannel("AvaniBot")}>
+              <MessagesSquare size={13} /> Ask a question
+            </button>
+          </div>
+        </div>
+        <span className="avani-count">
+          {unresolved.filter((t) => t.channel === "AvaniBot").length}
+        </span>
+      </section>
+      <SectionLabel>
+        Custom agents <span className="label-note">Set up by your manager</span>
+      </SectionLabel>
+      <div className="agent-groups">
+        <SectionLabel>
+          Role agents <span className="label-note">run a team</span>
+        </SectionLabel>
+        <button
+          className="agent-row"
+          onClick={() => setChannel("callcentre-agent")}
+        >
+          <span className="agent-marker purple">
+            <Headphones size={16} />
+          </span>
+          <div>
+            <strong># callcentre-agent</strong>
+            <small>Call Centre Agent</small>
+          </div>
+          <ChevronRight size={14} />
+        </button>
+        <SectionLabel>
+          Task agents <span className="label-note">move one metric</span>
+        </SectionLabel>
+        {[
+          ["cross-sell-agent", "Your attach rate", "24%", "↑ 2"],
+          ["sop-agent", "Your SOP adherence", "81%", "↑ 2"],
+          ["lead-conversion-agent", "Lead Conversion Agent", null, null],
+          ["capture-agent", "Your capture coverage", "78%", "↑ 1"],
+        ].map(([id, desc, value, change]) => (
+          <button className="agent-row" key={id} onClick={() => setChannel(id)}>
+            <span className="agent-marker">
+              <Target size={16} />
+            </span>
+            <div>
+              <strong># {id}</strong>
+              <small>{desc} · 5 members</small>
+            </div>
+            {value && (
+              <div className="agent-metric">
+                <strong>{value}</strong>
+                <small>{change}</small>
+              </div>
+            )}
+            <ChevronRight size={14} />
+          </button>
+        ))}
+      </div>
+      <SectionLabel>General</SectionLabel>
+      <button
+        className="pulse-channel"
+        onClick={() => setChannel("customer-discussions")}
+      >
+        <Avatar initials="CD" small />
+        <div>
+          <strong>customer-discussions</strong>
+          <small>Sample customer conversations</small>
+        </div>
+        <span className="unread">2</span>
+      </button>
+      <button className="kudos-card" onClick={() => setChannel("kudos")}>
+        <span className="kudos-icon">🏆</span>
+        <div>
+          <h3>
+            Kudos <span>3 new</span>
+          </h3>
+          <p>
+            “Great work with Mukunda — closed that objection beautifully!” —
+            Sunita Rao
+          </p>
+        </div>
+        <div className="kudos-count">
+          <strong>12</strong>
+          <small>All-time</small>
+        </div>
+      </button>
+      <SectionLabel>Channels</SectionLabel>
+      <div className="channel-list">
+        {channels
+          .filter((c) =>
+            (c.name + " " + c.preview)
+              .toLowerCase()
+              .includes(search.toLowerCase()),
+          )
+          .map((c) => (
+            <button
+              className="pulse-channel"
+              key={c.id}
+              onClick={() => setChannel(c.id)}
+            >
+              <span className="hash-icon">#</span>
+              <div>
+                <strong>{c.name}</strong>
+                <small>{c.preview}</small>
+              </div>
+              <span className="channel-time">
+                {c.id === "callcentre-team" ? "Now" : "10:22 am"}
+              </span>
+              {c.unread > 0 && (
+                <span className="unread">
+                  {c.id === "callcentre-team"
+                    ? unresolved.filter((t) => t.channel === c.id).length
+                    : c.unread}
+                </span>
+              )}
+            </button>
+          ))}
+      </div>
+      <SectionLabel>Direct messages</SectionLabel>
+      {[
+        ["SR", "Sunita Rao", "Great work with Mukunda — keep it up"],
+        ["PK", "Priya Krishnan", "Can you cover my 3pm slot today?"],
+        ["RK", "Raju Kumar", "Nice cross-sell on the Tranquo chair!"],
+      ].map(([initials, name, preview]) => (
+        <button
+          className="pulse-channel"
+          key={name}
+          onClick={() => setChannel(name)}
+        >
+          <Avatar initials={initials} small tone="gold" />
+          <div>
+            <strong>{name}</strong>
+            <small>{preview}</small>
+          </div>
+          <ChevronRight size={14} />
+        </button>
+      ))}
+    </div>
+  );
+}
+function CallModal({ lead, config, onClose, onRefresh, notify }) {
+  const [destination, setDestination] = useState(""),
+    [call, setCall] = useState(null),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState("");
+  const idempotency = useRef(crypto.randomUUID());
+  const [consent, setConsent] = useState(false);
+  const terminal = [
+    "completed",
+    "failed",
+    "busy",
+    "no-answer",
+    "canceled",
+    "cancelled",
+  ];
+  useEffect(() => {
+    if (!call?.id || terminal.includes(call.status)) return;
+    let live = true;
+    const poll = async () => {
+      try {
+        const next = await api("/calls/" + call.id);
+        if (live) setCall(next);
+      } catch (e) {
+        if (live) setError(e.message);
+      }
+    };
+    const timer = setInterval(poll, 4000);
+    return () => {
+      live = false;
+      clearInterval(timer);
+    };
+  }, [call?.id, call?.status]);
+  async function initiate(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const result = await api("/calls", {
+        method: "POST",
+        headers: { "Idempotency-Key": idempotency.current },
+        body: JSON.stringify({
+          to: destination,
+          name: lead?.name,
+          leadId: lead?.id,
+        }),
+      });
+      setCall(result);
+      onRefresh();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const statusText = {
+    "in-progress": "Exotel is connecting the call",
+    initiating: "Requesting call",
+    queued: "Call queued",
+    completed: "Call ended",
+    failed: "Call failed",
+    busy: "Recipient busy",
+    "no-answer": "No answer",
+    unknown: "Check Exotel for call status",
+  };
+  return (
+    <Modal
+      title={lead?.id ? `Call ${lead.name}` : "Place a real call"}
+      subtitle="Exotel · verified phone-to-phone connection"
+      onClose={onClose}
+    >
+      <div className="call-recipient">
+        <Avatar initials={lead?.initials || "OG"} />
+        <h3>{lead?.name || "Demo recipient"}</h3>
+        <span className="badge">Real telephone call</span>
+      </div>
+      {!call ? (
+        <>
+          <div className="call-explainer">
+            <span>1</span>
+            <p>
+              Answer your agent phone{" "}
+              <strong>{config?.agentPhone || "(not configured)"}</strong>.
+            </p>
+            <span>2</span>
+            <p>
+              Exotel rings your selected recipient and connects both phones.
+            </p>
+          </div>
+          {!config?.configured && (
+            <div className="warning-panel">
+              <Info size={18} />
+              <div>
+                <strong>Complete calling setup first</strong>
+                <p>
+                  Missing: {config?.missing?.join(", ") || "server connection"}.
+                  API credentials alone are not enough. No simulated call will
+                  be placed.
+                </p>
+              </div>
+            </div>
+          )}
+          <form onSubmit={initiate}>
+            <label className="field-label" htmlFor="destination">
+              Approved recipient number
+            </label>
+            <input
+              id="destination"
+              type="tel"
+              placeholder="+91 98765 43210"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              required
+              disabled={!config?.configured}
+            />
+            <p className="fine-print">
+              {config?.allowedNumbers?.length
+                ? "Approved recipients end in " +
+                  config.allowedNumbers.map((n) => n.id).join(", ")
+                : "A verified test recipient must be configured on the backend."}
+            </p>
+            <label className="consent-check">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+              />
+              I have permission to call this person now.
+            </label>
+            <button
+              className="primary full-width"
+              disabled={
+                busy || !config?.configured || !consent || !destination.trim()
+              }
+            >
+              <Phone size={16} />
+              {busy ? "Requesting real call…" : "Call now"}
+            </button>
+          </form>
+          <p className="fine-print">
+            Recording is off · 3-minute maximum · charges may use trial credits.
+            Speak through your phone; laptop audio is not enabled.
+          </p>
+        </>
+      ) : (
+        <div className="active-call">
+          <span
+            className={`call-orbit ${terminal.includes(call.status) ? "ended" : ""}`}
+          >
+            <Phone size={27} />
+          </span>
+          <h3>{statusText[call.status] || call.status}</h3>
+          <p>
+            {terminal.includes(call.status)
+              ? "Final status reported by Exotel."
+              : "Answer your phone first. This status comes from the provider, not a simulated timer."}
+          </p>
+          <dl>
+            <div>
+              <dt>Provider call ID</dt>
+              <dd>{call.providerId || "Not available"}</dd>
+            </div>
+            <div>
+              <dt>Provider status</dt>
+              <dd>{call.status}</dd>
+            </div>
+            <div>
+              <dt>Reported duration</dt>
+              <dd>{duration(call.duration)}</dd>
+            </div>
+          </dl>
+          {call.syncError && (
+            <p className="error">Status update delayed: {call.syncError}</p>
+          )}
+          {!terminal.includes(call.status) && (
+            <div className="info-strip">
+              <Info size={15} /> Hang up on your phone to end the call. Closing
+              this window does not end it.
+            </div>
+          )}
+          <button className="secondary full-width" onClick={onClose}>
+            {terminal.includes(call.status)
+              ? "Done"
+              : "Close — keep call running"}
+          </button>
+        </div>
+      )}
+      {error && (
+        <div role="alert" className="error-panel">
+          {error}
+        </div>
+      )}
+    </Modal>
+  );
+}
+function CallReview({ call, onClose, notify, refresh }) {
+  const [outcome, setOutcome] = useState(call.outcome || "Callback"),
+    [notes, setNotes] = useState(call.notes || ""),
+    [saving, setSaving] = useState(false);
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api("/calls/" + call.id + "/outcome", {
+        method: "PATCH",
+        body: JSON.stringify({ outcome, notes }),
+      });
+      notify("Call outcome saved.");
+      refresh();
+      onClose();
+    } catch (e) {
+      notify(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <Modal
+      title={"Call with " + call.name}
+      subtitle={`${call.when} · ${duration(call.duration)}`}
+      onClose={onClose}
+    >
+      <span className="badge">
+        {call.sample ? "Sample call review" : "Real Exotel call"}
+      </span>
+      {call.sample ? (
+        <>
+          <div className="review-score">
+            <span>SOP adherence on this call</span>
+            <strong>{call.score ? call.score + "%" : "Not scored"}</strong>
+          </div>
+          <p>{call.summary}</p>
+          {call.score &&
+            [
+              "Opening & intent confirm",
+              "Needs discovery",
+              "Product pitch",
+              "EMI / financing mention",
+              "Warranty mention",
+              "Closing / callback booking",
+            ].map((s, i) => (
+              <div className="sop-row" key={s}>
+                <span className={i === 4 ? "incomplete" : ""}>
+                  {i === 4 ? <X size={14} /> : <Check size={14} />}
+                </span>
+                <div>
+                  <strong>{s}</strong>
+                  <p>
+                    {i === 4
+                      ? "No warranty mention in this sample conversation."
+                      : "Covered in the sample conversation."}
+                  </p>
+                </div>
+              </div>
+            ))}
+        </>
+      ) : (
+        <>
+          <dl className="call-facts">
+            <div>
+              <dt>Status</dt>
+              <dd>{call.status}</dd>
+            </div>
+            <div>
+              <dt>Provider call ID</dt>
+              <dd>{call.providerId || "—"}</dd>
+            </div>
+          </dl>
+          <p className="help-text">
+            AI scoring and transcription are not enabled for real calls. Add a
+            manual outcome below.
+          </p>
+          <label className="field-label" htmlFor="outcome">
+            Outcome
+          </label>
+          <select
+            id="outcome"
+            value={outcome}
+            onChange={(e) => setOutcome(e.target.value)}
+          >
+            {["Converted", "Callback", "Not interested", "Follow up"].map(
+              (o) => (
+                <option key={o}>{o}</option>
+              ),
+            )}
+          </select>
+          <label className="field-label" htmlFor="call-notes">
+            Notes
+          </label>
+          <textarea
+            id="call-notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={4}
+            maxLength={2000}
+          />
+          <button
+            className="primary full-width"
+            onClick={save}
+            disabled={saving}
+          >
+            {saving ? "Saving…" : "Save outcome"}
+          </button>
+        </>
+      )}
+    </Modal>
+  );
+}
+function Practice({ notify }) {
+  const [step, setStep] = useState(0),
+    [recording, setRecording] = useState(false),
+    [audio, setAudio] = useState(null),
+    [error, setError] = useState("");
+  const recorder = useRef(null),
+    stream = useRef(null);
+  useEffect(
+    () => () => {
+      stream.current?.getTracks().forEach((t) => t.stop());
+      if (audio) URL.revokeObjectURL(audio);
+    },
+    [audio],
+  );
+  async function toggle() {
+    if (recording) {
+      recorder.current.stop();
+      stream.current.getTracks().forEach((t) => t.stop());
+      setRecording(false);
+      return;
+    }
+    try {
+      setError("");
+      stream.current = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      const chunks = [];
+      recorder.current = new MediaRecorder(stream.current);
+      recorder.current.ondataavailable = (e) => chunks.push(e.data);
+      recorder.current.onstop = () =>
+        setAudio(
+          URL.createObjectURL(
+            new Blob(chunks, { type: recorder.current.mimeType }),
+          ),
+        );
+      recorder.current.start();
+      setRecording(true);
+    } catch {
+      setError(
+        "Microphone access was unavailable. You can still rehearse using the script.",
+      );
+    }
+  }
+  return (
+    <div className="page-padding practice-page">
+      <div className="page-heading">
+        <div>
+          <h1>
+            <Headphones size={22} /> Practise a call
+          </h1>
+          <p>A little preparation. A more confident conversation.</p>
+        </div>
+        <span className="badge subtle">Local rehearsal</span>
+      </div>
+      <div className="practice-layout">
+        <div className="practice-steps">
+          {practiceSteps.map((s, i) => (
+            <button
+              className={step === i ? "active" : ""}
+              key={s.name}
+              disabled={recording}
+              onClick={() => {
+                setStep(i);
+                setAudio(null);
+              }}
+            >
+              <span>{i + 1}</span>
+              <div>
+                <strong>{s.name}</strong>
+                <small>
+                  {i === step ? "Ready to practise" : "Conversation skill"}
+                </small>
+              </div>
+              <ChevronRight size={15} />
+            </button>
+          ))}
+        </div>
+        <section className="practice-card">
+          <span className="eyebrow">Your net practise</span>
+          <h2>{practiceSteps[step].name}</h2>
+          <p>{practiceSteps[step].tip}</p>
+          <div className="script-box">
+            <span>Example script</span>
+            <blockquote>“{practiceSteps[step].script}”</blockquote>
+          </div>
+          <h3>Record your rendition</h3>
+          <p className="help-text">
+            Practice audio stays in this browser tab. It is not uploaded or
+            scored by AI.
+          </p>
+          <button
+            className={recording ? "record-button recording" : "record-button"}
+            onClick={toggle}
+          >
+            {recording ? <Square size={18} /> : <Mic size={18} />}{" "}
+            {recording ? "Stop recording" : "Start recording"}
+          </button>
+          {recording && (
+            <p className="recording-label">
+              ● Recording — try the script in your own words
+            </p>
+          )}
+          {audio && (
+            <>
+              <audio controls src={audio} />
+              <div className="practice-checklist">
+                <h3>Listen back and check</h3>
+                {[
+                  "Did you sound clear and natural?",
+                  "Did you ask permission or an open question?",
+                  "Did you finish with a clear next step?",
+                ].map((q) => (
+                  <label key={q}>
+                    <input type="checkbox" />
+                    {q}
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
+          {error && (
+            <p role="alert" className="error">
+              {error}
+            </p>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+function AccessModal({ onUnlock }) {
+  const [code, setCode] = useState(""),
+    [error, setError] = useState("");
+  return (
+    <div className="access-screen">
+      <div className="access-card">
+        <span className="logo-mark">OG</span>
+        <h1>Your call centre workspace</h1>
+        <p>Enter the demo access code supplied by the owner.</p>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            sessionStorage.setItem("demo-token", code);
+            try {
+              await api("/config");
+              onUnlock();
+            } catch (e) {
+              setError(e.message);
+            }
+          }}
+        >
+          <label className="field-label" htmlFor="demo-code">
+            Demo access code
+          </label>
+          <input
+            id="demo-code"
+            type="password"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            autoComplete="current-password"
+          />
+          <button className="primary full-width">
+            Open workspace <ChevronRight size={16} />
+          </button>
+          {error && <p className="error">{error}</p>}
+        </form>
+      </div>
+    </div>
+  );
+}
+createRoot(document.getElementById("root")).render(<App />);

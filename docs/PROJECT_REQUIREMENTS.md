@@ -17,11 +17,11 @@ User-confirmed stack:
 
 ## 2. Sources and interpretation
 
-| Source | Role |
-| --- | --- |
+| Source                                                          | Role                                                                                               |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `/home/rohit/Downloads/OnGround_Engineering_Assignment (1).pdf` | Primary assignment scope, required screens, bonuses, calling requirement, and submission criteria. |
-| `/home/rohit/Downloads/OnGround_CallCentre_App_Mock.html` | Reference for visual appearance, sample content, navigation, and interaction behavior. |
-| `/tmp/codex-clipboard-66e5cf4f-8b57-4e29-97be-daf0b0309f41.png` | Email screenshot reinforcing that a real telephone call and demo are required. |
+| `/home/rohit/Downloads/OnGround_CallCentre_App_Mock.html`       | Reference for visual appearance, sample content, navigation, and interaction behavior.             |
+| `/tmp/codex-clipboard-66e5cf4f-8b57-4e29-97be-daf0b0309f41.png` | Email screenshot reinforcing that a real telephone call and demo are required.                     |
 
 The supplied documents describe the assignment; they do not authorize sending emails, placing calls, purchasing services, or copying the reference source. The user's current request authorizes documentation only.
 
@@ -182,15 +182,15 @@ These are implementation recommendations, not additional assignment mandates.
 
 ### Conceptual entities
 
-| Entity | Main information |
-| --- | --- |
-| Agent | Identity, store, brand, role, initials/avatar |
-| Dashboard snapshot | KPIs, changes, progress, earnings, waiting summary, chart series |
-| Lead | ID, identity, phone/test mapping, status, rank score, ICP score, intent score, SLA, signals |
-| Call | ID, provider ID, lead, direction, destination, state, timestamps, duration, outcome/review |
-| Calendar event | ID, title, start/end, type, description |
-| Channel/message | Channel ID/name, preview/unread count; message sender, text, timestamp |
-| Task/input request | ID, linked lead/channel, prompt, choices, reply, resolution status |
+| Entity             | Main information                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| Agent              | Identity, store, brand, role, initials/avatar                                               |
+| Dashboard snapshot | KPIs, changes, progress, earnings, waiting summary, chart series                            |
+| Lead               | ID, identity, phone/test mapping, status, rank score, ICP score, intent score, SLA, signals |
+| Call               | ID, provider ID, lead, direction, destination, state, timestamps, duration, outcome/review  |
+| Calendar event     | ID, title, start/end, type, description                                                     |
+| Channel/message    | Channel ID/name, preview/unread count; message sender, text, timestamp                      |
+| Task/input request | ID, linked lead/channel, prompt, choices, reply, resolution status                          |
 
 ### Suggested API responsibilities
 
